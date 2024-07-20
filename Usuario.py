@@ -1,6 +1,5 @@
 from socket import *
 
-porta = 3333
 mensagemNotFoundUser = "Usuario nao encontrado"
 
 class Usuario:
@@ -14,78 +13,65 @@ class Usuario:
     # https://github.com/Gabrielcarvfer/Redes-de-Computadores-UnB/blob/master/trabalhos/20181/Lab2/ExemploIRC.py
 
     
-    def __init__(self, name, email, passw, cep, ipv4, sockDoUsuario) -> None:
+    def __init__(self, name, email, passw, cep, ipv4, sockUser) -> None:
 
         self.name, self.email, self.passw, self.cep, self.ipv4 = name, email, passw, cep, ipv4
 
-        # Sockets definitions
-        self.sockUser = sockDoUsuario
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.bind(self.sock.gethostname(), porta)
-        self.sock.listen(5)
+        # Sockets definitions are already done in the server
 
-        # We wants to listen to the messages received
-        # and to the messages that are going to be sent
-
-        # Runnig the thing
-        self.server()
+        self.sockUser = sockUser 
     
-    def server(self):
+    def receiveMsg(self, message, orig):
 
-        while(True):
+        found = False
 
-            usuarioSocket, enderecoUsuario = self.sock.accept()
+        # tem de se checar se uma conexao já foi estabelecida
+        # entre esses usuarios
 
-            # Acho q aqui talvez fosse interessante colocar algo
-            # pra identificar de onde vem essa msg
-            # se é esse usuario mesmo q ta enviando ou  afins
+        for user in self.users:
 
-            mensagemRcvd = self.sock.recv(1024).decode("utf-8")
+            if(user.getName() == orig):
 
-            # Como sabemos se a mensagem enviada foi de um usuario ou de um grupo?
-            # acredito q tenhamos q tratar as mensagens de grupos um pouco diferente
-            # ao passar para a interface
+                found = True
+                break
 
-            # Aqui embaixo vou fazer um esboço da implementação do processamento da
-            # mensagem recebida de um usuario para usuario
-
-            if enderecoUsuario == self.ipv4:
-
-                dest # isso aqui vai ser um jeito de marcar o destino pra mensagem
-                     # depois de definido o formato das mensagens trocadas
-
-                for aux in self.users:
-
-                    if(aux[0] == dest):
-
-                        aux[1].send(mensagemRcvd.encode("utf-8"))
-
-                        break
-                
-                self.sockUser.send(mensagemNotFoundUser.encode("utf-8"))
-
-                continue
-
-            # a ideia principal aqui é separar quando nosso usuario recebe uma mensagem
-            # de quando ele está enviando uma
-
-            aux = list(orig, usuarioSocket, enderecoUsuario)
-
-            if aux not in self.users:
-
-                # if the chanel doesn't exist then creates one
-
-                self.addUser(aux)
+        if(not found):
             
-            self.sockUser.send(mensagemRcvd.encode("utf-8"))
+            self.addUser(orig)
+        
+        # Devolvemos essa mensagem pro nosso usuario
 
+        self.sock.send(message.encode("utf-8"))
+    
+    def sendMsgToUser(self, message, dest):
 
+        # procuramos se estamos mandando msg pra algum usuario
+        # com algum canal
+
+        for user in self.users:
+
+            if(dest == user.getName()):
+
+                return list(message, user)
+        
+        return list(mensagemNotFoundUser, "NF")
+
+    def serverRcv(self):
+
+        # acredito q temos problemas nessa parte
+        # como fazer pra receber msgs de varios sockets diferentes dos usuarios?
+
+        mensagem = self.sockUser.recv(1024).decode("utf-8")
+
+        # aqui temos q tratar a mensagem
+
+        return(self.sendMsgToUser(mensagemAlterada, dest))
 
     # The main idea in this two methods is to
     # make the process of creating new chanels more
     # easy
 
-    def addUser(sockAndAdress, nick):
+    def addUser(userStuff):   # esse userStuff é um objeto Usuario
 
     
 
