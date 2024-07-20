@@ -1,6 +1,7 @@
 from socket import *
 
 mensagemNotFoundUser = "Usuario nao encontrado"
+mensagemNotFoundGrupo = "Grupo nao encontrado"
 
 class Usuario:
 
@@ -59,6 +60,14 @@ class Usuario:
 
         # procuramos se estamos mandando mensagem para algum grupo
         # com algum canal já existente
+        
+        for grupo in self.grupos:
+
+            if(dest == grupo.getName()):
+
+                return list(message, grupo)
+        
+        return list(mensagemNotFoundGrupo, "NF")
 
     def serverRcv(self):
 
