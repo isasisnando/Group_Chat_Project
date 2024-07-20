@@ -18,3 +18,5 @@ class Grupo:
     
     def getAdmin(self):
         return self.admin
+    
+    

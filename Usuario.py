@@ -84,11 +84,11 @@ class Usuario:
     # easy
 
     def addUser(userStuff):   # esse userStuff é um objeto Usuario
-        pass
+        return
     
 
     def addGroup():
-        pass
+        return
     
     def getName(self):
         return self.name
