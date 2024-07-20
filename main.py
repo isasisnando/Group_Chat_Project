@@ -2,6 +2,8 @@ import socket
 import Usuario
 
 PORT = 3300
+mensagemNaoEncontrouUser = "Usuario nao esta no servidor"
+
 class Server: 
     def __init__(self):
 
@@ -43,8 +45,14 @@ class Server:
                 1 -> login
                 2 -> message for group/direct
                 3 -> logout
+                4 -> quer adicionar um novo usuario
+                5 -> manda convite
+                6 -> aceita ou nao
+                7 -> pede pra entrar
+                8 -> aceita pedido ou nao
                 0|email|name|password|cep
                 1|email|password
+                4!emailDoNewUser
                 
             """
             message = client.recv(1024).decode("utf-32")
@@ -63,7 +71,26 @@ class Server:
                 user.serverRcv(message[1])
             elif (message[0] == '3'):
                 self.logout(client, address)
+            elif (message[0] == '4'):
 
+                if (message[1] not in self.users.keys()):
+                    client.send(mensagemNaoEncontrouUser.encode("utf-32"))
+                    continue
+
+                # Adiciona um novo usuario para o usuario atual
+                self.activeUser[str(address)].addUser(self.users[message[1]])
+
+    def sendInvite(self):
+        pass
+
+    def acceptInvite(self):
+        pass
+
+    def askIn(self):
+        pass
+
+    def acceptIn(self):
+        pass
 
     def start(self):
         self.receive()

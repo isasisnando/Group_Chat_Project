@@ -89,7 +89,8 @@ class Usuario:
     def serverRcv(self, mensagem):
         
         # 1@emerson@lucas@...
-        # 1, 2 - > identifica se é mensagem para um usuario ou grupo
+        # 1, 2 - > identifica se é mensagem para um usuario ou grupo ou
+        # se quer adicionar um novo usuario
         # orig - > quem está mandando
         # dest - > quem tem q receber
 
@@ -104,7 +105,10 @@ class Usuario:
     # make the process of creating new chanels more
     # easy
 
-    def addUser(userStuff):   # esse userStuff é um objeto Usuario
+    def addUser(self, userStuff):   # esse userStuff é um objeto Usuario
+
+        self.users.append(userStuff)
+        
         return
     
 

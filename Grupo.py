@@ -29,9 +29,6 @@ class Grupo:
     
     def addUser(self, user):
         self.users[user.getName()] = user
-    
-    def convite(self):
-        pass
 
     def pedidoParaEntrar(self):
         pass
