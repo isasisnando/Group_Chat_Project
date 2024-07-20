@@ -1,3 +1,5 @@
+from socket import *
+
 class Grupo:
 
     users = list()
