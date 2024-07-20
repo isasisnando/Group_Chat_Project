@@ -69,13 +69,7 @@ class Usuario:
         
         return list(mensagemNotFoundGrupo, "NF")
 
-    def serverRcv(self):
-
-        # acredito q temos problemas nessa parte
-        # como fazer pra receber msgs de varios sockets diferentes dos usuarios?
-
-        mensagem = self.sockUser.recv(1024).decode("utf-32")
-
+    def serverRcv(self, mensagem):
         # 1@emerson@lucas@...
         # 1, 2 - > identifica se é mensagem para um usuario ou grupo
         # orig - > quem está mandando
