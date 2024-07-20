@@ -21,7 +21,7 @@ class Usuario:
 
         self.sockUser = sockUser 
     
-    def receiveMsg(self, message, orig):
+    def receiveMsgUser(self, message, orig):
 
         found = False
 
@@ -31,14 +31,31 @@ class Usuario:
         for user in self.users:
 
             if(user.getName() == orig):
+                found = True
+                break
+
+        if(not found):
+            self.addUser(orig)
+        # Devolvemos essa mensagem pro nosso usuario
+
+        self.sockUser.send(message.encode("utf-32"))
+    
+    def receiveMsgGrupo(self, message, orig):
+
+        found = False
+
+        # tem de se checar se o usuario está no grupo
+
+        for grupo in self.grupos:
+
+            if(grupo.getName() == orig):
 
                 found = True
                 break
 
         if(not found):
-            
-            self.addUser(orig)
-        
+
+            return
         # Devolvemos essa mensagem pro nosso usuario
 
         self.sockUser.send(message.encode("utf-32"))
@@ -60,7 +77,7 @@ class Usuario:
 
         # procuramos se estamos mandando mensagem para algum grupo
         # com algum canal já existente
-        
+
         for grupo in self.grupos:
 
             if(dest == grupo.getName()):
@@ -70,6 +87,7 @@ class Usuario:
         return list(mensagemNotFoundGrupo, "NF")
 
     def serverRcv(self, mensagem):
+        
         # 1@emerson@lucas@...
         # 1, 2 - > identifica se é mensagem para um usuario ou grupo
         # orig - > quem está mandando
