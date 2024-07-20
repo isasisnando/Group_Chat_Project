@@ -1,6 +1,7 @@
 from socket import *
 
 porta = 3333
+mensagemNotFoundUser = "Usuario nao encontrado"
 
 class Usuario:
 
@@ -48,9 +49,31 @@ class Usuario:
             # Aqui embaixo vou fazer um esboço da implementação do processamento da
             # mensagem recebida de um usuario para usuario
 
-            aux = list(usuarioSocket, enderecoUsuario)
+            if enderecoUsuario == self.ipv4:
+
+                dest # isso aqui vai ser um jeito de marcar o destino pra mensagem
+                     # depois de definido o formato das mensagens trocadas
+
+                for aux in self.users:
+
+                    if(aux[0] == dest):
+
+                        aux[1].send(mensagemRcvd.encode("utf-8"))
+
+                        break
+                
+                self.sockUser.send(mensagemNotFoundUser.encode("utf-8"))
+
+                continue
+
+            # a ideia principal aqui é separar quando nosso usuario recebe uma mensagem
+            # de quando ele está enviando uma
+
+            aux = list(orig, usuarioSocket, enderecoUsuario)
 
             if aux not in self.users:
+
+                # if the chanel doesn't exist then creates one
 
                 self.addUser(aux)
             
@@ -59,7 +82,7 @@ class Usuario:
 
 
     # The main idea in this two methods is to
-    # make the process of adding peoples more
+    # make the process of creating new chanels more
     # easy
 
     def addUser(sockAndAdress, nick):
@@ -80,3 +103,6 @@ class Usuario:
     
     def getCep(self):
         return self.cep
+
+# Acho q vamos precisar de uma classe pra gerar os usuarios e os grupos
+# no server side
