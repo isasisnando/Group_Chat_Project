@@ -72,11 +72,11 @@ class Usuario:
     # easy
 
     def addUser(userStuff):   # esse userStuff é um objeto Usuario
-
+        return
     
 
     def addGroup():
-    
+        return
     
     def getName(self):
         return self.name
