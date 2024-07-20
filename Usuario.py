@@ -12,7 +12,6 @@ class Usuario:
     # algo já implementado naquele exemplo de IRC, link:
     # https://github.com/Gabrielcarvfer/Redes-de-Computadores-UnB/blob/master/trabalhos/20181/Lab2/ExemploIRC.py
 
-    
     def __init__(self, name, email, passw, cep, ipv4, sockUser) -> None:
 
         self.name, self.email, self.passw, self.cep, self.ipv4 = name, email, passw, cep, ipv4
@@ -41,7 +40,7 @@ class Usuario:
         
         # Devolvemos essa mensagem pro nosso usuario
 
-        self.sock.send(message.encode("utf-8"))
+        self.sockUser.send(message.encode("utf-32"))
     
     def sendMsgToUser(self, message, dest):
 
@@ -55,28 +54,41 @@ class Usuario:
                 return list(message, user)
         
         return list(mensagemNotFoundUser, "NF")
+    
+    def sendMsgToGroup(self, message, dest):
+
+        # procuramos se estamos mandando mensagem para algum grupo
+        # com algum canal já existente
 
     def serverRcv(self):
 
         # acredito q temos problemas nessa parte
         # como fazer pra receber msgs de varios sockets diferentes dos usuarios?
 
-        mensagem = self.sockUser.recv(1024).decode("utf-8")
+        mensagem = self.sockUser.recv(1024).decode("utf-32")
 
-        # aqui temos q tratar a mensagem
+        # 1@emerson@lucas@...
+        # 1, 2 - > identifica se é mensagem para um usuario ou grupo
+        # orig - > quem está mandando
+        # dest - > quem tem q receber
 
-        return(self.sendMsgToUser(mensagemAlterada, dest))
+        mensagemSplitada = mensagem.split('@')
+
+        if(mensagemSplitada[0] == '2'):
+            return(self.sendMsgToGroup(mensagem, mensagemSplitada[2]))
+        
+        return(self.sendMsgToUser(mensagem, mensagemSplitada[2]))
 
     # The main idea in this two methods is to
     # make the process of creating new chanels more
     # easy
 
     def addUser(userStuff):   # esse userStuff é um objeto Usuario
-
+        pass
     
 
     def addGroup():
-    
+        pass
     
     def getName(self):
         return self.name
