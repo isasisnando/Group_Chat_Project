@@ -10,7 +10,7 @@ class Grupo:
 
     def __init__(self, name, admin):
 
-        self.name, self.admin = name, admin  
+        self.name, self.admin = name, admin 
         self.users.append(admin)
     
     def rcvAndPropMsg(self, mensagem):

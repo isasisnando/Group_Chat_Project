@@ -122,10 +122,12 @@ class Server:
                     if (message[1] in self.groups.keys()):
                         client.send(mensagemGroupNameUsed)
                         continue
-                    
+
                     newGrupo = Grupo(message[1], self.users[message[2]])
 
                     self.groups[message[1]] = newGrupo
+
+                    self.users[message[2]].addGroup(newGrupo)
 
     def start(self):
         self.receive()
