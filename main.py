@@ -1,9 +1,12 @@
 import socket 
 import Usuario
+import Grupo
 
 PORT = 3300
 mensagemNaoEncontrouUser = "Usuario nao esta no servidor"
 mensagemUnauthorized = "Você não está autorizado a fazer isso"
+mensagemGroupNameUsed = "Nome de Grupo já existe"
+mensagemExistsUserEmail = "Já existe usuario com esse email"
 
 class Server: 
     def __init__(self):
@@ -50,12 +53,14 @@ class Server:
                 5 -> manda convite
                 6 -> pede pra entrar
                 7 -> entra
+                8 -> cria grupo
                 0|email|name|password|cep
                 1|email|password
                 4!emailDoNewUser
                 5|grupo|email
                 6|grupo|email
                 7|grupo|email
+                8|nome|email
                 
                 Acredito q seria interessante deixar a resposta de um convite ou pedido
                 privadas
@@ -63,7 +68,7 @@ class Server:
                 Futuramente com o lado do cliente implementado e quando formos olhar as coisas
                 da transmissão de audio e video mais coisas devem ser adicionadas, mas
                 o corpo acho q é isso
-                
+
             """
             message = client.recv(1024).decode("utf-32")
 
@@ -74,6 +79,12 @@ class Server:
                 case ('1'):
                     isValid = self.login(message)
                 case ('0'):
+
+                    if (message[1] in self.users.keys()):
+
+                        client.send(mensagemExistsUserEmail)
+                        continue
+
                     self.sign_up(message)
                 case ('2'):
                     ip = str(address) 
@@ -105,6 +116,16 @@ class Server:
 
                     self.groups[message[1]].addUser(self.users[message[2]])
                     self.users[message[2]].addGroup(self.groups[message[1]])
+                
+                case('8'):
+
+                    if (message[1] in self.groups.keys()):
+                        client.send(mensagemGroupNameUsed)
+                        continue
+                    
+                    newGrupo = Grupo(message[1], self.users[message[2]])
+
+                    self.groups[message[1]] = newGrupo
 
     def start(self):
         self.receive()
