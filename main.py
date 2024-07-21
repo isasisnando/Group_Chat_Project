@@ -3,13 +3,14 @@ import Usuario
 
 PORT = 3300
 mensagemNaoEncontrouUser = "Usuario nao esta no servidor"
+mensagemUnauthorized = "Você não está autorizado a fazer isso"
 
 class Server: 
     def __init__(self):
 
         self.users = dict()  #dict<email, User>
         self.activeUser = dict()   #dict<ip, User>
-        self.groups = list()
+        self.groups = dict() # dict<name, Group>
 
         self.socket = socket.socket((socket.AF_INET, socket.SOCK_STREAM))
         self.socket.bind((socket.gethostbyname(), PORT))
@@ -47,52 +48,51 @@ class Server:
                 3 -> logout
                 4 -> quer adicionar um novo usuario
                 5 -> manda convite
-                6 -> aceita ou nao
-                7 -> pede pra entrar
-                8 -> aceita pedido ou nao
+                6 -> pede pra entrar
+                7 -> entra
                 0|email|name|password|cep
                 1|email|password
                 4!emailDoNewUser
+                5|grupo|email
+                7|grupo|email
                 
             """
             message = client.recv(1024).decode("utf-32")
 
             message = message.split("|")
 
-            if (message[0] == '1'):
-                isValid = self.login(message)
-            elif (message[0]=='0'):
-                self.sign_up(message)
-            elif (message[0] == '2'):
-                ip = str(address) 
-                user = None
-                if (ip in self.activeUser.keys()):
-                   user =  self.activeUser[ip]
-                user.serverRcv(message[1])
-            elif (message[0] == '3'):
-                self.logout(client, address)
-            elif (message[0] == '4'):
+            match message[0]:
+            
+                case ('1'):
+                    isValid = self.login(message)
+                case ('0'):
+                    self.sign_up(message)
+                case ('2'):
+                    ip = str(address) 
+                    user = None
+                    if (ip in self.activeUser.keys()):
+                        user =  self.activeUser[ip]
+                        user.serverRcv(message[1])
+                case ('3'):
+                    self.logout(client, address)
+                case ('4'):
+                    if (message[1] not in self.users.keys()):
+                        client.send(mensagemNaoEncontrouUser.encode("utf-32"))
+                        continue
+                    # Adiciona um novo usuario para o usuario atual
+                    self.activeUser[str(address)].addUser(self.users[message[1]])
+                case('5'):
+                    if (self.activeUser[str(address)].getName() != self.groups[message[1]].getAdmin()):
+                        client.send(mensagemUnauthorized.encode("utf-32"))
+                        continue
 
-                if (message[1] not in self.users.keys()):
-                    client.send(mensagemNaoEncontrouUser.encode("utf-32"))
-                    continue
+                    # O usuario devera receber o grupo que foi convidado
 
-                # Adiciona um novo usuario para o usuario atual
-                self.activeUser[str(address)].addUser(self.users[message[1]])
+                    self.user[message[2]].rcvInvite(message[1])
+                case('7'):
 
-    def sendInvite(self):
-        pass
-
-    def acceptInvite(self):
-        pass
-
-    def askIn(self):
-        pass
-
-    def acceptIn(self):
-        pass
+                    self.groups[message[1]].addUser(self.users[message[2]])
+                    self.users[message[2]].addGroup(self.groups[message[1]])
 
     def start(self):
         self.receive()
-
-

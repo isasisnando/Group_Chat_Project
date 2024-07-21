@@ -89,8 +89,8 @@ class Usuario:
     def serverRcv(self, mensagem):
         
         # 1@emerson@lucas@...
-        # 1, 2 - > identifica se é mensagem para um usuario ou grupo ou
-        # se quer adicionar um novo usuario
+        # 1, 2, 3 - > identifica se é mensagem para um usuario ou grupo
+        # ou um convite para um grupo
         # orig - > quem está mandando
         # dest - > quem tem q receber
 
@@ -98,7 +98,7 @@ class Usuario:
 
         if(mensagemSplitada[0] == '2'):
             return(self.sendMsgToGroup(mensagem, mensagemSplitada[2]))
-        
+
         return(self.sendMsgToUser(mensagem, mensagemSplitada[2]))
 
     # The main idea in this two methods is to
@@ -111,8 +111,18 @@ class Usuario:
         
         return
     
+    def rcvInvite(self, group):
 
-    def addGroup():
+        # 3 implica um convite
+
+        mensagem = "3@"
+        mensagem += group
+
+        self.sockUser.send(mensagem.encode("utf-32"))
+    
+    def addGroup(self, groupStuff): # esse groupStuff é um objeto Grupo
+
+        self.grupos.append(groupStuff)
         return
     
     def getName(self):
