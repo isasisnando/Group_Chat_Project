@@ -54,7 +54,15 @@ class Server:
                 1|email|password
                 4!emailDoNewUser
                 5|grupo|email
+                6|grupo|email
                 7|grupo|email
+                
+                Acredito q seria interessante deixar a resposta de um convite ou pedido
+                privadas
+
+                Futuramente com o lado do cliente implementado e quando formos olhar as coisas
+                da transmissão de audio e video mais coisas devem ser adicionadas, mas
+                o corpo acho q é isso
                 
             """
             message = client.recv(1024).decode("utf-32")
@@ -89,6 +97,10 @@ class Server:
                     # O usuario devera receber o grupo que foi convidado
 
                     self.user[message[2]].rcvInvite(message[1])
+                case('6'):
+
+                    (self.groups[message[1]].getAdmin()).pedidoParaEntrar(message[2])
+
                 case('7'):
 
                     self.groups[message[1]].addUser(self.users[message[2]])

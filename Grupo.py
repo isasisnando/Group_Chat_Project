@@ -30,9 +30,6 @@ class Grupo:
     def addUser(self, user):
         self.users[user.getName()] = user
 
-    def pedidoParaEntrar(self):
-        pass
-
     def getName(self):
         return self.name
     
