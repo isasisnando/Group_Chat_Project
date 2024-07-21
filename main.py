@@ -87,11 +87,23 @@ class Server:
 
                     self.sign_up(message)
                 case ('2'):
+
                     ip = str(address) 
                     user = None
                     if (ip in self.activeUser.keys()):
+
                         user =  self.activeUser[ip]
-                        user.serverRcv(message[1])
+                        dest = user.serverRcv(message[1])
+
+                        if (dest == "NF"):
+                            continue
+
+                        if (isinstance(dest, Usuario)):
+                            dest.receiveMsgUser(message[1])
+                            continue
+                        
+                        dest.rcvAndPropMsg(message[1])
+
                 case ('3'):
                     self.logout(client, address)
                 case ('4'):

@@ -97,9 +97,22 @@ class Usuario:
         mensagemSplitada = mensagem.split('@')
 
         if(mensagemSplitada[0] == '2'):
-            return(self.sendMsgToGroup(mensagem, mensagemSplitada[2]))
 
-        return(self.sendMsgToUser(mensagem, mensagemSplitada[2]))
+            content, dest = self.sendMsgToGroup(mensagem, mensagemSplitada[2])
+
+            if (content == mensagemNotFoundGrupo):
+
+                self.sockUser.send(content.encode("utf-32"))
+
+            return dest
+
+        content, dest = self.sendMsgToUser(mensagem, mensagemSplitada[2])
+
+        if (content == mensagemNotFoundUser):
+
+            self.sockUser.send(content.encode("utf-32"))
+
+        return dest
 
     # The main idea in this two methods is to
     # make the process of creating new chanels more
