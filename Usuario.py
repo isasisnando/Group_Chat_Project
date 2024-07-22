@@ -1,5 +1,5 @@
 from socket import *
-
+import Grupo as Grupo
 mensagemNotFoundUser = "Usuario nao encontrado"
 mensagemNotFoundGrupo = "Grupo nao encontrado"
 mensagemOutGrupo = "5@"

@@ -1,4 +1,5 @@
 from socket import *
+import Usuario as Usuario
 
 class Grupo:
 
