@@ -3,62 +3,37 @@ from socket import *
 mensagemNotFoundUser = "Usuario nao encontrado"
 mensagemNotFoundGrupo = "Grupo nao encontrado"
 mensagemOutGrupo = "5@"
+
 class Usuario:
 
     grupos = list()
     users = list()
+    messages = dict() # dict <Name, list(message)>, se ficar um projeto grande usar bd
+    notif = list()
 
     # seria interessante ter outra lista com outros usuarios
     # os quais ele já iniciou uma conversa? Acho q essa lista é
     # algo já implementado naquele exemplo de IRC, link:
     # https://github.com/Gabrielcarvfer/Redes-de-Computadores-UnB/blob/master/trabalhos/20181/Lab2/ExemploIRC.py
 
-    def __init__(self, name, email, passw, cep, ipv4, sockUser) -> None:
+    def __init__(self, name, email, passw, cep, ipv4) -> None:
 
         self.name, self.email, self.passw, self.cep, self.ipv4 = name, email, passw, cep, ipv4
 
         # Sockets definitions are already done in the server
-
-        self.sockUser = sockUser 
+    
+    def retornaNotif(self):
+        return(self.notif)
+    
+    def retornaMsgs(self, userName):
+        return(self.messages[userName])
     
     def receiveMsgUser(self, message, orig):
 
-        found = False
-
-        # tem de se checar se uma conexao já foi estabelecida
-        # entre esses usuarios
-
-        for user in self.users:
-
-            if(user.getName() == orig):
-                found = True
-                break
-
-        if(not found):
-            self.addUser(orig)
         # Devolvemos essa mensagem pro nosso usuario
 
-        self.sockUser.send(message.encode("utf-32"))
-    
-    def receiveMsgGrupo(self, message, orig):
+        self.messages[orig].append(message)
 
-        found = False
-
-        # tem de se checar se o usuario está no grupo
-
-        for grupo in self.grupos:
-
-            if(grupo.getName() == orig):
-
-                found = True
-                break
-
-        if(not found):
-
-            return
-        # Devolvemos essa mensagem pro nosso usuario
-
-        self.sockUser.send(message.encode("utf-32"))
     
     def sendMsgToUser(self, message, dest):
 
@@ -68,6 +43,8 @@ class Usuario:
         for user in self.users:
 
             if(dest == user.getName()):
+
+                self.messages[dest].append(message)
 
                 return list(message, user)
         
@@ -89,9 +66,9 @@ class Usuario:
     def serverRcv(self, mensagem):
         
         # 1@emerson@lucas@...
-        # 1, 2, 3, 4, 5- > identifica se é mensagem para um usuario ou grupo
-        # ou um convite para um grupo ou pedido para entrar em um grupo ou
-        # sair de um grupo
+        # 1, 2 -> identifica se é mensagem para um usuario ou grupo
+        # Notif: 3, 4, 5, 6 - > ou um convite para um grupo ou pedido para entrar em um grupo ou
+        # sair de um grupo ou um canal foi criado entre os usuarios
         # orig - > quem está mandando
         # dest - > quem tem q receber
 
@@ -99,21 +76,9 @@ class Usuario:
 
         if(mensagemSplitada[0] == '2'):
 
-            content, dest = self.sendMsgToGroup(mensagem, mensagemSplitada[2])
+             return(self.sendMsgToGroup(mensagem, mensagemSplitada[2]))
 
-            if (content == mensagemNotFoundGrupo):
-
-                self.sockUser.send(content.encode("utf-32"))
-
-            return dest
-
-        content, dest = self.sendMsgToUser(mensagem, mensagemSplitada[2])
-
-        if (content == mensagemNotFoundUser):
-
-            self.sockUser.send(content.encode("utf-32"))
-
-        return dest
+        return (self.sendMsgToUser(mensagem, mensagemSplitada[2]))
 
     # The main idea in this two methods is to
     # make the process of creating new chanels more
@@ -123,6 +88,11 @@ class Usuario:
 
         self.users.append(userStuff)
         
+        self.messages[userStuff.getName()] = list()
+
+        mensagem = "6@criouCanal@" + userStuff.getName()
+
+        self.notif.append(mensagem)
         return
     
     def rcvInvite(self, group):
@@ -132,15 +102,15 @@ class Usuario:
         mensagem = "3@"
         mensagem += group
 
-        self.sockUser.send(mensagem.encode("utf-32"))
-    
+        self.notif.append(mensagem)
+
     def pedidoParaEntrar(self, whoWantsIn): # A gente passa ao admin quem pediu pra entrar
         
         message = "4@"
 
         message += whoWantsIn
 
-        self.sockUser.send(message.encode("utf-32"))
+        self.notif.append(message)
     
     def sairDeUmGrupo(self, grupo):
 
@@ -151,7 +121,7 @@ class Usuario:
 
         mensagem = mensagemOutGrupo + grupo.getName()
 
-        self.sockUser.send(mensagem.encode("utf-32"))
+        self.notif.append(mensagem)
 
     
     def addGroup(self, groupStuff): # esse groupStuff é um objeto Grupo

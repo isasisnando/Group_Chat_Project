@@ -15,17 +15,13 @@ class Grupo:
     
     def rcvAndPropMsg(self, mensagem):
 
-        # Aqui a mensagem será recebida e enviada para todos
-        # usuarios com exceçao do q enviou
+        # Aqui a mensagem é armazenada para futuras requisições das mensagens
 
-        mensagemSplitada = mensagem.split('@')
+        self.messages.append(mensagem)
+    
+    def retornaMsg(self):
 
-        # propaga a mensagem para todos os usuarios presentes no grupo
-        for user in self.users.keys():
-
-            if(user != mensagemSplitada[1]):
-
-                self.users[user].receiveMsgGrupo(mensagem, self.name)
+        return(self.messages)
     
     def addUser(self, user):
         self.users[user.getName()] = user

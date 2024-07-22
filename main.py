@@ -7,6 +7,7 @@ mensagemNaoEncontrouUser = "Usuario nao esta no servidor"
 mensagemUnauthorized = "Você não está autorizado a fazer isso"
 mensagemGroupNameUsed = "Nome de Grupo já existe"
 mensagemExistsUserEmail = "Já existe usuario com esse email"
+mensagemSucess = "Requisição obteve sucesso"
 
 class Server: 
     def __init__(self):
@@ -19,7 +20,7 @@ class Server:
         self.socket.bind((socket.gethostbyname(), PORT))
         self.socket.listen()
 
-    def login(self, message, client, address):
+    def login(self, message, address):
 
         if message[1] in self.users:
 
@@ -27,16 +28,15 @@ class Server:
 
                 user = self.users[message[1]]
                 user.ipv4 = address
-                user.sockUser = client
                 self.activeUser[str(address)] = user
 
-    def sign_up(self, message, client, address):
+    def sign_up(self, message, address):
 
-        user = Usuario(message[2], message[1], message[3], message[4], address, client)
+        user = Usuario(message[2], message[1], message[3], message[4], address)
         self.users.append(user)
         self.activeUser[str(address)] = user
     
-    def logout(self, client, address):
+    def logout(self, address):
         del self.activeUser[str(address)]
 
     def receive(self):
@@ -55,6 +55,9 @@ class Server:
                 7 -> entra
                 8 -> cria grupo
                 9 -> sai Grupo
+                10 -> pega mensagens user
+                11 -> pega mensagens grupo
+                12 -> pega notifications
                 0|email|name|password|cep
                 1|email|password
                 4!emailDoNewUser
@@ -63,6 +66,8 @@ class Server:
                 7|grupo|email
                 8|grupo|email
                 9|NomeGrupo|email
+                10|emailDoUser
+                11|NomeDoGrupo
                 
                 Acredito q seria interessante deixar a resposta de um convite ou pedido
                 privadas
@@ -84,7 +89,7 @@ class Server:
 
                     if (message[1] in self.users.keys()):
 
-                        client.send(mensagemExistsUserEmail)
+                        client.send(mensagemExistsUserEmail.encode("utf-32"))
                         continue
 
                     self.sign_up(message)
@@ -95,13 +100,17 @@ class Server:
                     if (ip in self.activeUser.keys()):
 
                         user =  self.activeUser[ip]
-                        dest = user.serverRcv(message[1])
+                        content, dest = user.serverRcv(message[1])
 
                         if (dest == "NF"):
+
+                            client.send(content.encode("utf-32"))
                             continue
 
                         if (isinstance(dest, Usuario)):
-                            dest.receiveMsgUser(message[1])
+
+                            dest.receiveMsgUser(message[1], self.activeUser[ip].getName())
+
                             continue
                         
                         dest.rcvAndPropMsg(message[1])
@@ -114,6 +123,7 @@ class Server:
                         continue
                     # Adiciona um novo usuario para o usuario atual
                     self.activeUser[str(address)].addUser(self.users[message[1]])
+                    self.users[message[1]].addUser(self.activeUser[str(address)])
                 case('5'):
                     if (self.activeUser[str(address)].getName() != self.groups[message[1]].getAdmin()):
                         client.send(mensagemUnauthorized.encode("utf-32"))
@@ -134,7 +144,7 @@ class Server:
                 case('8'):
 
                     if (message[1] in self.groups.keys()):
-                        client.send(mensagemGroupNameUsed)
+                        client.send(mensagemGroupNameUsed.encode("utf-32"))
                         continue
 
                     newGrupo = Grupo(message[1], self.users[message[2]])
@@ -147,6 +157,26 @@ class Server:
 
                     self.groups[message[1]].eraseUser(self.users[message[2]])
                     self.users[message[2]].sairDeUmGrupo(self.groups[message[1]])
+                case('10'):
+
+                    msgs = self.activeUser[str(address)].retornaMsgs(self.users[message[1]])
+                    for x in msgs:
+                        client.send(x.encode("utf-32"))
+                    continue
+                case('11'):
+
+                    msgs = self.groups[message[1]].retornaMsg()
+                    for x in msgs:
+                        client.send(x.encode("utf-32"))
+                    continue
+                case('12'):
+
+                    notifi = self.activeUser[str(address)].retornaNotif
+                    for x in notifi:
+                        client.send(x.encode("utf-32"))
+                    continue
+            
+            client.send(mensagemSucess.encode("utf-32"))
 
     def start(self):
         self.receive()
