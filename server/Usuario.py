@@ -23,39 +23,13 @@ class Usuario:
     
     def receiveMsgUser(self, message, orig):
 
-        found = False
-
-        # tem de se checar se uma conexao já foi estabelecida
-        # entre esses usuarios
-
-        for user in self.users:
-
-            if(user.getName() == orig):
-                found = True
-                break
-
-        if(not found):
-            self.addUser(orig)
         # Devolvemos essa mensagem pro nosso usuario
 
         self.sockUser.send(message.encode("utf-32"))
     
     def receiveMsgGrupo(self, message, orig):
 
-        found = False
-
-        # tem de se checar se o usuario está no grupo
-
-        for grupo in self.grupos:
-
-            if(grupo.getName() == orig):
-
-                found = True
-                break
-
-        if(not found):
-
-            return
+        # vc está garantidamente no grupo
         # Devolvemos essa mensagem pro nosso usuario
 
         self.sockUser.send(message.encode("utf-32"))
@@ -89,9 +63,9 @@ class Usuario:
     def serverRcv(self, mensagem):
         
         # 1@emerson@lucas@...
-        # 1, 2, 3, 4, 5- > identifica se é mensagem para um usuario ou grupo
+        # 1, 2, 3, 4, 5, 6- > identifica se é mensagem para um usuario ou grupo
         # ou um convite para um grupo ou pedido para entrar em um grupo ou
-        # sair de um grupo
+        # sair de um grupo ou usuario adicionado
         # orig - > quem está mandando
         # dest - > quem tem q receber
 
@@ -122,7 +96,11 @@ class Usuario:
     def addUser(self, userStuff):   # esse userStuff é um objeto Usuario
 
         self.users.append(userStuff)
-        
+
+        mensagem = "6@" + userStuff.getName() + "@" + userStuff.getEmail()
+
+        self.sockUser.send(mensagem.encode("utf-32"))
+
         return
     
     def rcvInvite(self, group):
