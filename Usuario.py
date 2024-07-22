@@ -2,7 +2,7 @@ from socket import *
 
 mensagemNotFoundUser = "Usuario nao encontrado"
 mensagemNotFoundGrupo = "Grupo nao encontrado"
-
+mensagemOutGrupo = "5@"
 class Usuario:
 
     grupos = list()
@@ -89,8 +89,9 @@ class Usuario:
     def serverRcv(self, mensagem):
         
         # 1@emerson@lucas@...
-        # 1, 2, 3, 4- > identifica se é mensagem para um usuario ou grupo
-        # ou um convite para um grupo ou pedido para entrar em um grupo
+        # 1, 2, 3, 4, 5- > identifica se é mensagem para um usuario ou grupo
+        # ou um convite para um grupo ou pedido para entrar em um grupo ou
+        # sair de um grupo
         # orig - > quem está mandando
         # dest - > quem tem q receber
 
@@ -140,6 +141,18 @@ class Usuario:
         message += whoWantsIn
 
         self.sockUser.send(message.encode("utf-32"))
+    
+    def sairDeUmGrupo(self, grupo):
+
+        self.grupos.pop(grupo)
+
+        # se a gente tivesse mais grupos usar um dict seria melhor
+        # para a complexidade
+
+        mensagem = mensagemOutGrupo + grupo.getName()
+
+        self.sockUser.send(mensagem.encode("utf-32"))
+
     
     def addGroup(self, groupStuff): # esse groupStuff é um objeto Grupo
 

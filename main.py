@@ -54,13 +54,15 @@ class Server:
                 6 -> pede pra entrar
                 7 -> entra
                 8 -> cria grupo
+                9 -> sai Grupo
                 0|email|name|password|cep
                 1|email|password
                 4!emailDoNewUser
                 5|grupo|email
                 6|grupo|email
                 7|grupo|email
-                8|nome|email
+                8|grupo|email
+                9|NomeGrupo|email
                 
                 Acredito q seria interessante deixar a resposta de um convite ou pedido
                 privadas
@@ -140,6 +142,11 @@ class Server:
                     self.groups[message[1]] = newGrupo
 
                     self.users[message[2]].addGroup(newGrupo)
+                
+                case('9'):
+
+                    self.groups[message[1]].eraseUser(self.users[message[2]])
+                    self.users[message[2]].sairDeUmGrupo(self.groups[message[1]])
 
     def start(self):
         self.receive()

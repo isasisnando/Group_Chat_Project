@@ -29,7 +29,14 @@ class Grupo:
     
     def addUser(self, user):
         self.users[user.getName()] = user
+    
+    def eraseUser(self, user):
+        del self.users[user.getName()]
 
+        mensagem = "2@" + user.getName() + "@saiu"
+
+        self.rcvAndPropMsg(mensagem)
+    
     def getName(self):
         return self.name
     
