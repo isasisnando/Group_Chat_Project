@@ -1,4 +1,5 @@
 import tkinter as tk
+import tkinter.scrolledtext
 import socket 
 from ClientUser import ClientUser
 
@@ -57,7 +58,7 @@ class Start(tk.Tk):
             self.user = ClientUser(name, email, passw, cep, self.socket)
 
             self.socket.send(message.encode('utf-32'))
-            # Chat(user)
+            Chat(self.user)
 
 
     def login(self): 
@@ -83,16 +84,55 @@ class Start(tk.Tk):
 
 class Chat(tk.Tk): 
     def __init__(self, user):
-        self().__init__()
+        super().__init__()
         self.configure(bg= "lightgray")
-
+        self.geometry("400x650")
+        self.user = user
         self.chat_label = tk.Label(self, text = "Chat:", bg="lightgray")
         self.chat_label.config(font=("Arial", 12))
         self.chat_label.pack(padx=20, pady=5)
         
-        self.text_area = tk
+        self.text_area = tkinter.scrolledtext.ScrolledText(self)
+        self.text_area.pack(padx=20, pady=5)
+        self.text_area.config(state='disabled')
+
+        self.msg_label = tk.Label(self, text="Message:", bg="lightgray")
+        self.msg_label.config(font=("Arial", 12))
+        self.msg_label.pack(padx=20, pady=5)
+
+        self.input_area = tk.Text(self, height=3)
+        self.input_area.pack(padx=20, pady=5)
+
+        self.send_button = tk.Button(self, text = "Send", command=self.write)
+        self.send_button.config(font=("Arial", 12))
+        self.send_button.pack(padx=20, pady=5)
 
 
+        self.protocol("WM_DELETE_WINDOW", self.stop)
+        self.mainloop()
+
+    def write(self):
+        message = f"{self.user.getName()}: {self.input_area.get('1.0', 'end')}"
+        self.user.sockUser.send(message.encode("utf-32"))
+        self.input_area.delete('1.0', 'end')
+    def stop(self):
+        self.destroy()
+        self.sock.close()
+
+    def receive(self):
+        while True:
+            try:
+                message = self.user.sockUser.recv(1024)
+                self.text_area.config(state="normal")
+                self.text_area.insert('end', message)
+                self.text_area.yview('end')
+                self.text_area.config(state= "disabled")
+            except ConnectionAbortedError: 
+                break
+            except:
+                print("Error")
+                self.user.sockUser.close()
+                break
 
 
 Start()
