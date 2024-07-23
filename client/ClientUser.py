@@ -6,29 +6,9 @@ class ClientUser:
 
     # Isso aqui seria interessante pra encapsular melhor
 
-    def __init__(self, _name, _email, _passw, _cep, _login, _sock = None):
+    def __init__(self, _name, _email, _passw, _cep, _sock = None):
 
         self.name, self.email, self.passw, self.cep, self.sockUser = _name, _email, _passw, _cep, _sock
-
-        # definitions of the client socket
-
-        if(not _login):
-
-            self.sockUser = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-            # socket definitions done
-            # this is the first connection so we need to
-            # sign up this big person
-
-            self.sockUser.connect(socket.gethostbyname(), PORT)
-
-            mensagem = "0|" + _email + "|" + _name + "|" + _passw + "|" + _cep + "|"
-
-            self.sockUser.send(mensagem)
-
-            # A gente tem q fazer close aqui né?
-
-            self.sockUser.close()
     
     def getName(self):
         return self.name
