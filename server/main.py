@@ -22,13 +22,15 @@ class Server:
     def login(self, message, client, address):
 
         if message[1] in self.users:
-
             if (message[2] == self.users[message[1]].getPassw()):
 
                 user = self.users[message[1]]
                 user.ipv4 = address
                 user.sockUser = client
                 self.activeUser[str(address)] = user
+                return(user.getName(), user.getCep())
+        
+        return("NF", "NF")
 
     def sign_up(self, message, client, address):
 
@@ -79,7 +81,7 @@ class Server:
             match message[0]:
             
                 case ('1'):
-                    isValid = self.login(message)
+                    return(self.login(message, client, address))
                 case ('0'):
 
                     if (message[1] in self.users.keys()):
@@ -135,7 +137,7 @@ class Server:
                 case('8'):
 
                     if (message[1] in self.groups.keys()):
-                        client.send(mensagemGroupNameUsed)
+                        client.send(mensagemGroupNameUsed.encode("utf-32"))
                         continue
 
                     newGrupo = Grupo(message[1], self.users[message[2]])
