@@ -91,5 +91,59 @@ class ClientUser:
                 return("Perdeu Acesso a esse grupo", mensagemSplitada[1])
             case ('6'):
                 return("Adicionou esse usuario", mensagemSplitada[1])
-            
+            case ('7'):
+                return("Voce entrou no grupo", mensagemSplitada[1])
         # Tratar as mensagens de acordo com o estabelecido pelo servidor
+    
+    def sendMsgUser(self, dest, msg):
+
+        # Here the user sends a msg to another user
+
+        self.sockUser.connect((socket.gethostbyname(), PORT))
+
+        mensagem = "2|1@" + self.getName() + "@" + dest + '@' + msg + '@'
+
+        self.sockUser.send(mensagem)
+
+        self.sockUser.close()
+    
+    def sendMsgGroup(self, dest, msg):
+
+        self.sockUser.connect((socket.gethostbyname(), PORT))
+
+        mensagem = "2|2@" + self.getName() + "@" + dest + '@' + msg + '@'
+
+        self.sockUser.send(mensagem)
+
+        self.sockUser.close()
+    
+    def sendInviteGroup(self, who, nomeGrupo): # Who its an email
+
+        self.sockUser.connect((socket.gethostbyname(), PORT))
+
+        mensagem = "5|" + nomeGrupo + '|' + who + '|'
+
+        self.sockUser.send(mensagem)
+
+        self.sockUser.close()
+    
+    def acceptInGroup(self, nomeGrupo, whoIn):
+
+        self.sockUser.connect((socket.gethostbyname(), PORT))
+
+        mensagem = "7|" + nomeGrupo + '|' + whoIn + '|'
+
+        self.sockUser.send(mensagem)
+
+        self.sockUser.close()
+    
+    def askInGroup(self, nomeGrupo):
+
+        self.sockUser.connect((socket.gethostbyname(), PORT))
+
+        mensagem = "6|" + nomeGrupo + '|' + self.getEmail() + '|'
+
+        self.sockUser.send(mensagem)
+
+        self.sockUser.close()
+    

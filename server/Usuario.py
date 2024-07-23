@@ -63,11 +63,12 @@ class Usuario:
     def serverRcv(self, mensagem):
         
         # 1@emerson@lucas@...
-        # 1, 2, 3, 4, 5, 6- > identifica se é mensagem para um usuario ou grupo
+        # 1, 2, 3, 4, 5, 6, 7- > identifica se é mensagem para um usuario ou grupo
         # ou um convite para um grupo ou pedido para entrar em um grupo ou
         # sair de um grupo ou usuario adicionado
         # orig - > quem está mandando
         # dest - > quem tem q receber
+        # 7@grupo
 
         mensagemSplitada = mensagem.split('@')
 
@@ -134,6 +135,9 @@ class Usuario:
     
     def addGroup(self, groupStuff): # esse groupStuff é um objeto Grupo
 
+        mensagem = "7@" + groupStuff + "@"
+        
+        self.sockUser(mensagem.encode("utf-32"))
         self.grupos.append(groupStuff)
         return
     
