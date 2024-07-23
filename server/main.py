@@ -1,6 +1,6 @@
 import socket 
-import Usuario as Usuario
-import Grupo as Grupo
+import server.Usuario as Usuario
+import server.Grupo as Grupo
 
 PORT = 3300
 mensagemNaoEncontrouUser = "Usuario nao esta no servidor"

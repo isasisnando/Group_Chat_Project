@@ -1,5 +1,5 @@
 from socket import *
-import Usuario as Usuario
+import server.Usuario as Usuario
 
 class Grupo:
 
