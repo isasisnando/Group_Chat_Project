@@ -1,7 +1,7 @@
 from socket import *
 import server.Grupo as Grupo
-mensagemNotFoundUser = "Usuario nao encontrado"
-mensagemNotFoundGrupo = "Grupo nao encontrado"
+mensagemNotFoundUser = "canal com o usuario nao encontrado"
+mensagemNotFoundGrupo = "voce nao esta no grupo"
 mensagemOutGrupo = "5@"
 class Usuario:
 
@@ -21,13 +21,13 @@ class Usuario:
 
         self.sockUser = sockUser 
     
-    def receiveMsgUser(self, message, orig):
+    def receiveMsgUser(self, message):
 
         # Devolvemos essa mensagem pro nosso usuario
 
         self.sockUser.send(message.encode("utf-32"))
     
-    def receiveMsgGrupo(self, message, orig):
+    def receiveMsgGrupo(self, message):
 
         # vc está garantidamente no grupo
         # Devolvemos essa mensagem pro nosso usuario
@@ -97,7 +97,7 @@ class Usuario:
 
         self.users.append(userStuff)
 
-        mensagem = "6@" + userStuff.getName() + "@" + userStuff.getEmail()
+        mensagem = "6@" + userStuff.getName() + "@" + userStuff.getEmail() + '@'
 
         self.sockUser.send(mensagem.encode("utf-32"))
 
@@ -108,7 +108,7 @@ class Usuario:
         # 3 implica um convite
 
         mensagem = "3@"
-        mensagem += group
+        mensagem += group + '@'
 
         self.sockUser.send(mensagem.encode("utf-32"))
     
@@ -116,7 +116,7 @@ class Usuario:
         
         message = "4@"
 
-        message += whoWantsIn
+        message += whoWantsIn + '@'
 
         self.sockUser.send(message.encode("utf-32"))
     
@@ -127,7 +127,7 @@ class Usuario:
         # se a gente tivesse mais grupos usar um dict seria melhor
         # para a complexidade
 
-        mensagem = mensagemOutGrupo + grupo.getName()
+        mensagem = mensagemOutGrupo + grupo.getName() + '@'
 
         self.sockUser.send(mensagem.encode("utf-32"))
 
