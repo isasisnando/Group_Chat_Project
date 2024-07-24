@@ -1,6 +1,7 @@
 import socket 
 import server.Usuario as Usuario
 import server.Grupo as Grupo
+import threading
 
 PORT = 3300
 mensagemNaoEncontrouUser = "Usuario nao esta no servidor"
@@ -28,9 +29,14 @@ class Server:
                 user.ipv4 = address
                 user.sockUser = client
                 self.activeUser[str(address)] = user
-                return(user.getName(), user.getCep())
+
+                mensagem = "login Done : " + user.getName() + " : " + user.getCep() + " : "
+
+                client.send(mensagem.encode("utf-32"))
+                return
         
-        return("NF", "NF")
+        mensagem = "login Not Done : "
+        client.send(mensagem.encode("utf-32"))
 
     def sign_up(self, message, client, address):
 
@@ -38,7 +44,7 @@ class Server:
         self.users.append(user)
         self.activeUser[str(address)] = user
     
-    def logout(self, client, address):
+    def logout(self, address):
         del self.activeUser[str(address)]
 
     def receive(self):
@@ -81,7 +87,8 @@ class Server:
             match message[0]:
             
                 case ('1'):
-                    return(self.login(message, client, address))
+                    t = threading.Thread(target= self.login, args=(message, client, address))
+                    t.start()
                 case ('0'):
 
                     if (message[1] in self.users.keys()):
@@ -89,7 +96,8 @@ class Server:
                         client.send(mensagemExistsUserEmail)
                         continue
 
-                    self.sign_up(message)
+                    t = threading.Thread(target= self.sign_up, args=(message))
+                    t.start()
                 case ('2'):
 
                     ip = str(address) 
@@ -97,42 +105,40 @@ class Server:
                     if (ip in self.activeUser.keys()):
 
                         user =  self.activeUser[ip]
-                        dest = user.serverRcv(message[1])
-
-                        if (dest == "NF"):
-                            continue
-
-                        if (isinstance(dest, Usuario)):
-                            dest.receiveMsgUser(message[1])
-                            continue
-                        
-                        dest.rcvAndPropMsg(message[1])
-
+                        t = threading.Thread(target= user.serverRcv, args=(message[1]))
+                        t.start()
                 case ('3'):
-                    self.logout(client, address)
+                    t = threading.Thread(target= self.logout, args=(address))
+                    t.start()
                 case ('4'):
                     if (message[1] not in self.users.keys()):
                         client.send(mensagemNaoEncontrouUser.encode("utf-32"))
                         continue
                     # Adiciona um novo usuario para o usuario atual
-                    self.activeUser[str(address)].addUser(self.users[message[1]])
-                    self.users[message[1]].addUser(self.activeUser[str(address)])
+                    t = threading.Thread(target= self.activeUser[str(address)].addUser, args=(self.users[message[1]]))
+                    t1 = threading.Thread(target= self.users[message[1]].addUser, args=(self.activeUser[str(address)]))
+                    t1.start()
+                    t.start()
                 case('5'):
                     if (self.activeUser[str(address)].getName() != self.groups[message[1]].getAdmin()):
                         client.send(mensagemUnauthorized.encode("utf-32"))
                         continue
 
                     # O usuario devera receber o grupo que foi convidado
-
-                    self.user[message[2]].rcvInvite(message[1])
+                    t = threading.Thread(target= self.user[message[2]].rcvInvite, args=(message[1]))
+                    t.start()
+                    
                 case('6'):
 
-                    (self.groups[message[1]].getAdmin()).pedidoParaEntrar(message[2])
+                    t = threading.Thread(target= (self.groups[message[1]].getAdmin()).pedidoParaEntrar, args=(message[2]))
+                    t.start()
 
                 case('7'):
 
-                    self.groups[message[1]].addUser(self.users[message[2]])
-                    self.users[message[2]].addGroup(self.groups[message[1]])
+                    t = threading.Thread(target= self.groups[message[1]].addUser, args=(self.users[message[2]]))
+                    t1 = threading.Thread(target= self.users[message[2]].addGroup, args=(self.groups[message[1]]))
+                    t1.start()
+                    t.start()
                 
                 case('8'):
 
@@ -144,12 +150,15 @@ class Server:
 
                     self.groups[message[1]] = newGrupo
 
-                    self.users[message[2]].addGroup(newGrupo)
+                    t = threading.Thread(target= self.users[message[2]].addGroup, args=(newGrupo))
+                    t.start()
                 
                 case('9'):
 
-                    self.groups[message[1]].eraseUser(self.users[message[2]])
-                    self.users[message[2]].sairDeUmGrupo(self.groups[message[1]])
+                    t = threading.Thread(target= self.groups[message[1]].eraseUser, args=(self.users[message[2]]))
+                    t1 = threading.Thread(target= self.users[message[2]].sairDeUmGrupo, args=(self.groups[message[1]]))
+                    t1.start()
+                    t.start()
 
     def start(self):
         self.receive()

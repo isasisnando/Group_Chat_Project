@@ -79,8 +79,11 @@ class Usuario:
             if (content == mensagemNotFoundGrupo):
 
                 self.sockUser.send(content.encode("utf-32"))
-
-            return dest
+                return
+            
+            dest.rcvAndPropMsg(content)
+            
+            return
 
         content, dest = self.sendMsgToUser(mensagem, mensagemSplitada[2])
 
@@ -88,7 +91,9 @@ class Usuario:
 
             self.sockUser.send(content.encode("utf-32"))
 
-        return dest
+            return
+        
+        dest.receiveMsgUser(content)
 
     # The main idea in this two methods is to
     # make the process of creating new chanels more

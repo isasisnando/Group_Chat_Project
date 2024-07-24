@@ -1,5 +1,6 @@
 from socket import *
 import server.Usuario as Usuario
+import threading
 
 class Grupo:
 
@@ -26,7 +27,8 @@ class Grupo:
 
             if(user != mensagemSplitada[1]):
 
-                self.users[user].receiveMsgGrupo(mensagem, self.name)
+                t = threading.Thread(target= self.users[user].receiveMsgGrupo, args=(mensagem, self.name))
+                t.start()
     
     def addUser(self, user):
         self.users[user.getName()] = user
