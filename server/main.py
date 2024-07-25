@@ -43,7 +43,7 @@ class Server:
     def sign_up(self, message, client, address):
 
         user = Usuario(message[2], message[1], message[3], message[4], address, client)
-        self.users.append(user)
+        self.users[user.getEmail()] = user
         self.activeUser[str(address)] = user
     
     def logout(self, address):
@@ -98,7 +98,7 @@ class Server:
                         client.send(mensagemExistsUserEmail)
                         continue
 
-                    t = threading.Thread(target= self.sign_up, args=(message))
+                    t = threading.Thread(target= self.sign_up, args=(message, client, address))
                     t.start()
                 case ('2'):
 
