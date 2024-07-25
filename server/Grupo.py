@@ -1,5 +1,4 @@
 from socket import *
-import server.Usuario as Usuario
 import threading
 
 class Grupo:

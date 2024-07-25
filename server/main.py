@@ -1,8 +1,10 @@
 import socket 
-import server.Usuario as Usuario
-import server.Grupo as Grupo
+from Usuario import Usuario
+from Grupo import Grupo
 import threading
 
+
+HOST = "127.0.0.1"
 PORT = 3300
 mensagemNaoEncontrouUser = "Usuario nao esta no servidor"
 mensagemUnauthorized = "Você não está autorizado a fazer isso"
@@ -17,7 +19,7 @@ class Server:
         self.groups = dict() # dict<name, Group>
 
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.bind((socket.gethostbyname(), PORT))
+        self.socket.bind((HOST, PORT))
         self.socket.listen()
 
     def login(self, message, client, address):
@@ -163,4 +165,4 @@ class Server:
     def start(self):
         self.receive()
 
-Server()
+Server().start()

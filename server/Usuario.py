@@ -1,5 +1,5 @@
 from socket import *
-import server.Grupo as Grupo
+from Grupo import Grupo
 mensagemNotFoundUser = "canal com o usuario nao encontrado"
 mensagemNotFoundGrupo = "voce nao esta no grupo"
 mensagemOutGrupo = "5@"
