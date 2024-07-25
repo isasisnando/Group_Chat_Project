@@ -16,7 +16,7 @@ class Server:
         self.activeUser = dict()   #dict<ip, User>
         self.groups = dict() # dict<name, Group>
 
-        self.socket = socket.socket((socket.AF_INET, socket.SOCK_STREAM))
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((socket.gethostbyname(), PORT))
         self.socket.listen()
 
@@ -162,3 +162,5 @@ class Server:
 
     def start(self):
         self.receive()
+
+Server()
