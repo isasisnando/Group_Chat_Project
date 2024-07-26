@@ -5,6 +5,7 @@ PORT = 3300
 class ClientUser:
 
     # Isso aqui seria interessante pra encapsular melhor
+    groups = list()
 
     def __init__(self, _name, _email, _passw, _cep, _sock = None):
 
