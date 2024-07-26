@@ -51,7 +51,7 @@ class SignUp(tk.Tk):
         self.email_input.place(x=150, y= 180)
         self.passw = tk.Label(self.frame, text= "Password", bg="gray")
         self.passw.place(x=80, y= 210)
-        self.passw_input = tk.Entry(self.frame, width=25, bg="#D3D3D3")
+        self.passw_input = tk.Entry(self.frame, width=25, bg="#D3D3D3", show="*")
         self.passw_input.place(x=150, y=210)
         self.cep = tk.Label(self.frame, text= "CEP", bg="gray")
         self.cep.place(x=80, y= 240)
@@ -76,37 +76,43 @@ class SignUp(tk.Tk):
             self.user = ClientUser(name, email, passw, cep, self.socket)
 
             self.socket.send(message.encode('utf-32'))
-            Chat(self.user)
-
-
-    def login(self): 
-         # definitions of the client socket
-
-
-        self.sockUser = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        # socket definitions done
-        # this is the first connection so we need to
-        # sign up this big person
-
-        self.sockUser.connect(socket.gethostbyname(), PORT)
-
-        mensagem = "0|" + _email + "|" + _name + "|" + _passw + "|" + _cep + "|"
-
-        self.sockUser.send(mensagem)
-
-        # A gente tem q fazer close aqui né?
-
-        self.sockUser.close()
+            IntialPage(self.user)
 
 class IntialPage(tk.Tk):
     def __init__(self, user: ClientUser):
         super().__init__()
+
         self.user = user 
 
-        self.geometry("500x650")
+        self.geometry("450x650")
 
-        
+        self.title("Bem vindo ao Chat Room")
+
+        self.frame = tk.Frame(self, background="95ECEC")
+        self.frame.pack(fill="both", expand=True)
+
+        tk.Label(self.frame, text="").place(relwidth=1, y=24)
+
+        self.clicked = tk.StringVar()
+        self.clicked.set("Escolher grupos")
+        self.groups_dropdown = tk.OptionMenu(self.frame, self.clicked , *self.user.groups)
+        self.groups_dropdown.pack()
+
+        self.button_dropdown = tk.Button(self.frame, text="Escolha o grupo", command=self.choose_group)
+
+        self.mainloop()
+
+    def choose_group(self):
+        pass
+
+
+
+
+
+    def change_dropdown_label(self):
+        self.dropdown_label.config(text = self.clicked.get())
+
+    
 
 
 
@@ -118,6 +124,7 @@ class Chat(tk.Tk):
         self.configure(bg= "lightgray")
         self.geometry("400x650")
         self.user = user
+
         self.chat_label = tk.Label(self, text = "Chat:", bg="lightgray")
         self.chat_label.config(font=("Arial", 12))
         self.chat_label.pack(padx=20, pady=5)
