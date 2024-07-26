@@ -10,6 +10,24 @@ class Start(tk.Tk):
     def __init__(self):
         super().__init__()
 
+        self.geometry("400x300")
+
+        self.title("Bem vindo ao Chat Room")
+
+        self.frame = tk.Frame(self, background="gray")
+        self.frame.pack(fill="both", expand=True)
+
+        tk.Label(self.frame, text="Bem vindo ao Chat Room").place(relwidth=1, y=12)
+
+        self.signUp = tk.Button(self.frame, command=SignUp, text="Cadastrar", bg="cyan", relief="raised", height=3, width=10)
+        self.signUp.place(x=155, y=110)
+        
+        self.mainloop()
+
+class SignUp(tk.Tk):
+    def __init__(self):
+        super().__init__()
+
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((HOST, PORT))
         
@@ -133,6 +151,5 @@ class Chat(tk.Tk):
                 print("Error")
                 self.user.sockUser.close()
                 break
-
 
 Start()
