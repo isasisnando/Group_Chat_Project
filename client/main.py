@@ -14,15 +14,65 @@ class Start(tk.Tk):
 
         self.title("Bem vindo ao Chat Room")
 
-        self.frame = tk.Frame(self, background="gray")
+        self.frame = tk.Frame(self, background="#95ECEC")
         self.frame.pack(fill="both", expand=True)
 
         tk.Label(self.frame, text="Bem vindo ao Chat Room").place(relwidth=1, y=12)
 
-        self.signUp = tk.Button(self.frame, command=SignUp, text="Cadastrar", bg="cyan", relief="raised", height=3, width=10)
+        self.signUp = tk.Button(self.frame, command=SignUp, text="Cadastrar", bg="red", relief="raised", height=3, width=10)
         self.signUp.place(x=155, y=110)
+
+        self.logs = tk.Button(self.frame, command=LogIn, text="Entrar", bg="red", relief="raised", height=3, width=10)
+        self.logs.place(x=155, y=180)
         
         self.mainloop()
+
+class LogIn(tk.Tk):
+    def __init__(self):
+        super().__init__()
+
+        self.geometry("400x300")
+
+        self.title("insira seus dados")
+
+        self.frame = tk.Frame(self, background="#95ECEC")
+        self.frame.pack(fill="both", expand=True)
+
+        tk.Label(self.frame, text="Insira seus dados:").place(relwidth=1, y = 20)
+        tk.Label(self.frame, text="Email:", bg="white").place(x=50, y=100)
+        self.email_input = tk.Entry(self.frame, width=20, bg="#D3D3D3")
+        self.email_input.place(x=110, y= 100)
+        tk.Label(self.frame, text="Senha:", bg="white").place(x=50, y=140)
+        self.passw_input = tk.Entry(self.frame, width=25, bg="#D3D3D3", show="*")
+        self.passw_input.place(x=110, y= 140)
+
+        self.submit = tk.Button(self.frame, command=self.login, text="Entrar", bg="red", relief="raised", height=3, width=10)
+        self.submit.place(x=155, y=190)
+
+        self.mainloop()
+    
+    def login(self): 
+        # definitions of the client socket
+        self.sockUser = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        _email = self.email_input.get()
+        _passw = self.passw_input.get()
+        # socket definitions done
+        # this is the first connection so we need to
+        # sign up this big person
+        self.sockUser.connect((HOST, PORT))
+        mensagem = f"1|{_email}|{_passw}|"
+        self.sockUser.send(mensagem.encode("utf-32"))
+        # A gente tem q fazer close aqui né?
+        resp = self.sockUser.recv(1024).decode("utf-32")
+        resp = resp.split(" : ")
+        if(resp[0] == "login Done"):
+
+            self.user = ClientUser(resp[1], _email, _passw, resp[2], self.sockUser)
+            Chat(self.user)
+            return
+        
+        self.destroy()
+        LogIn()
 
 class SignUp(tk.Tk):
     def __init__(self):
@@ -72,32 +122,11 @@ class SignUp(tk.Tk):
 
         if(name and passw and email and cep):
             print("usiduaisudbia")
-            message = f"0|{email}|{name}|{passw}|{cep}"
+            message = f"0|{email}|{name}|{passw}|{cep}|"
             self.user = ClientUser(name, email, passw, cep, self.socket)
 
             self.socket.send(message.encode('utf-32'))
             Chat(self.user)
-
-
-    def login(self): 
-         # definitions of the client socket
-
-
-        self.sockUser = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        # socket definitions done
-        # this is the first connection so we need to
-        # sign up this big person
-
-        self.sockUser.connect(socket.gethostbyname(), PORT)
-
-        mensagem = "0|" + _email + "|" + _name + "|" + _passw + "|" + _cep + "|"
-
-        self.sockUser.send(mensagem)
-
-        # A gente tem q fazer close aqui né?
-
-        self.sockUser.close()
 
 
 class Chat(tk.Tk): 
@@ -135,7 +164,6 @@ class Chat(tk.Tk):
         self.input_area.delete('1.0', 'end')
     def stop(self):
         self.destroy()
-        self.sock.close()
 
     def receive(self):
         while True:
