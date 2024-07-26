@@ -81,6 +81,18 @@ class Start(tk.Tk):
 
         self.sockUser.close()
 
+class IntialPage(tk.Tk):
+    def __init__(self, user: ClientUser):
+        super().__init__()
+        self.user = user 
+
+        self.geometry("500x650")
+
+        
+
+
+
+
 
 class Chat(tk.Tk): 
     def __init__(self, user):
