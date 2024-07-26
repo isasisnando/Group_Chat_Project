@@ -6,6 +6,23 @@ from ClientUser import ClientUser
 HOST = "127.0.0.1"
 PORT = 3300
 
+class ErrorMsg(tk.Tk):
+    
+    def __init__(self, message):
+        super().__init__()
+
+        self.geometry("200x200")
+
+        self.title("ERROR")
+
+        self.frame = tk.Frame(self, background="red")
+        self.frame.pack(fill="both", expand=True)
+
+        tk.Label(self.frame, text="Error: "+message, background="black", foreground="white", width=10, height=10).place(relwidth=1, y=75)
+
+        LogIn()
+        self.mainloop()
+
 class Start(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -62,17 +79,16 @@ class LogIn(tk.Tk):
         self.sockUser.connect((HOST, PORT))
         mensagem = f"1|{_email}|{_passw}|"
         self.sockUser.send(mensagem.encode("utf-32"))
-        # A gente tem q fazer close aqui né?
         resp = self.sockUser.recv(1024).decode("utf-32")
         resp = resp.split(" : ")
         if(resp[0] == "login Done"):
 
             self.user = ClientUser(resp[1], _email, _passw, resp[2], self.sockUser)
-            Chat(self.user)
+            IntialPage(self.user)
             return
         
         self.destroy()
-        LogIn()
+        ErrorMsg("EMAIL OU SENHA ERRADO.")
 
 class SignUp(tk.Tk):
     def __init__(self):
