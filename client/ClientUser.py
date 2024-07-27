@@ -5,7 +5,7 @@ PORT = 3300
 class ClientUser:
 
     # Isso aqui seria interessante pra encapsular melhor
-    groups = list()
+    groups = dict()
 
     def __init__(self, _name, _email, _passw, _cep, _sock = None):
 
@@ -16,6 +16,10 @@ class ClientUser:
     
     def getEmail(self):
         return self.email
+    
+    def getCep(self):
+        return self.cep
+
     
     def addFriend(self, who):
 
