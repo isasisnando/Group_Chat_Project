@@ -136,7 +136,6 @@ class Server:
                     t.start()
 
                 case('7'):
-
                     t = threading.Thread(target= self.groups[message[1]].addUser, args=(self.users[message[2]]))
                     t1 = threading.Thread(target= self.users[message[2]].addGroup, args=(self.groups[message[1]]))
                     t1.start()
