@@ -89,15 +89,17 @@ class Server:
             match message[0]:
             
                 case ('1'):
+                    print(message)
                     t = threading.Thread(target= self.login, args=(message, client, address))
                     t.start()
                 case ('0'):
 
                     if (message[1] in self.users.keys()):
 
-                        client.send(mensagemExistsUserEmail)
+                        client.send(mensagemExistsUserEmail.encode("utf-32"))
                         continue
 
+                    print(message)
                     t = threading.Thread(target= self.sign_up, args=(message, client, address))
                     t.start()
                 case ('2'):
