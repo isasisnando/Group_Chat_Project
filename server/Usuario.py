@@ -3,6 +3,7 @@ from Grupo import Grupo
 mensagemNotFoundUser = "canal com o usuario nao encontrado"
 mensagemNotFoundGrupo = "voce nao esta no grupo"
 mensagemOutGrupo = "5@"
+
 class Usuario:
 
     grupos = list()
@@ -59,6 +60,18 @@ class Usuario:
                 return list(message, grupo)
         
         return list(mensagemNotFoundGrupo, "NF")
+    
+    def start(self):
+        
+       while (1):
+           
+           mensagem = self.sockUser.recv(1024).decode("utf-32")
+
+           if (mensagem == ""):
+               continue
+           
+
+
 
     def serverRcv(self, mensagem):
         

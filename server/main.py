@@ -14,9 +14,8 @@ mensagemExistsUserEmail = "Já existe usuario com esse email"
 class Server: 
     def __init__(self):
 
-        self.users = dict()  #dict<email, User>
-        self.activeUser = dict()   #dict<ip, User>
-        self.groups = dict() # dict<name, Group>
+        self.users = dict() # dict<email, user>
+        self.groups = list()
 
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((HOST, PORT))
@@ -24,17 +23,20 @@ class Server:
 
     def login(self, message, client, address):
 
-        if message[1] in self.users:
+        if message[1] in self.users.keys():
             if (message[2] == self.users[message[1]].getPassw()):
 
                 user = self.users[message[1]]
                 user.ipv4 = address
                 user.sockUser = client
-                self.activeUser[str(address)] = user
+                
 
                 mensagem = "login Done : " + user.getName() + " : " + user.getCep() + " : "
 
                 client.send(mensagem.encode("utf-32"))
+
+                t = threading.Thread(target= self.user.start(), args=())
+                t.start()
                 return
         
         mensagem = "login Not Done : "
@@ -43,11 +45,9 @@ class Server:
     def sign_up(self, message, client, address):
 
         user = Usuario(message[2], message[1], message[3], message[4], address, client)
+        t = threading.Thread(target= self.user.start(), args=())
+        t.start()
         self.users[user.getEmail()] = user
-        self.activeUser[str(address)] = user
-    
-    def logout(self, address):
-        del self.activeUser[str(address)]
 
     def receive(self):
 
@@ -89,7 +89,7 @@ class Server:
             match message[0]:
             
                 case ('1'):
-                    print(message)
+
                     t = threading.Thread(target= self.login, args=(message, client, address))
                     t.start()
                 case ('0'):
@@ -99,69 +99,7 @@ class Server:
                         client.send(mensagemExistsUserEmail.encode("utf-32"))
                         continue
 
-                    print(message)
                     t = threading.Thread(target= self.sign_up, args=(message, client, address))
-                    t.start()
-                case ('2'):
-
-                    ip = str(address) 
-                    user = None
-                    if (ip in self.activeUser.keys()):
-
-                        user =  self.activeUser[ip]
-                        t = threading.Thread(target= user.serverRcv, args=(message[1]))
-                        t.start()
-                case ('3'):
-                    t = threading.Thread(target= self.logout, args=(address))
-                    t.start()
-                case ('4'):
-                    if (message[1] not in self.users.keys()):
-                        client.send(mensagemNaoEncontrouUser.encode("utf-32"))
-                        continue
-                    # Adiciona um novo usuario para o usuario atual
-                    t = threading.Thread(target= self.activeUser[str(address)].addUser, args=(self.users[message[1]]))
-                    t1 = threading.Thread(target= self.users[message[1]].addUser, args=(self.activeUser[str(address)]))
-                    t1.start()
-                    t.start()
-                case('5'):
-                    if (self.activeUser[str(address)].getName() != self.groups[message[1]].getAdmin()):
-                        client.send(mensagemUnauthorized.encode("utf-32"))
-                        continue
-
-                    # O usuario devera receber o grupo que foi convidado
-                    t = threading.Thread(target= self.user[message[2]].rcvInvite, args=(message[1]))
-                    t.start()
-                    
-                case('6'):
-
-                    t = threading.Thread(target= (self.groups[message[1]].getAdmin()).pedidoParaEntrar, args=(message[2]))
-                    t.start()
-
-                case('7'):
-
-                    t = threading.Thread(target= self.groups[message[1]].addUser, args=(self.users[message[2]]))
-                    t1 = threading.Thread(target= self.users[message[2]].addGroup, args=(self.groups[message[1]]))
-                    t1.start()
-                    t.start()
-                
-                case('8'):
-
-                    if (message[1] in self.groups.keys()):
-                        client.send(mensagemGroupNameUsed.encode("utf-32"))
-                        continue
-
-                    newGrupo = Grupo(message[1], self.users[message[2]])
-
-                    self.groups[message[1]] = newGrupo
-
-                    t = threading.Thread(target= self.users[message[2]].addGroup, args=(newGrupo))
-                    t.start()
-                
-                case('9'):
-
-                    t = threading.Thread(target= self.groups[message[1]].eraseUser, args=(self.users[message[2]]))
-                    t1 = threading.Thread(target= self.users[message[2]].sairDeUmGrupo, args=(self.groups[message[1]]))
-                    t1.start()
                     t.start()
 
     def start(self):
