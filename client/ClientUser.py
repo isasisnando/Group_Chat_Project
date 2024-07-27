@@ -24,16 +24,11 @@ class ClientUser:
     def addFriend(self, who):
 
         # who é um email
-
-        self.sockUser.connect(socket.gethostbyname(), PORT)
-
         mensagem = "4|" + who + '|'
 
         self.sockUser.send(mensagem.encode("utf-32"))
 
          # A gente tem q fazer close aqui né?
-
-        self.sockUser.close()
 
     def rcvServer(self):
 
@@ -41,6 +36,7 @@ class ClientUser:
 
         match str(mensagemSrvr):
             case ("Já existe usuario com esse email"):
+                
                 return("Já existe usuario com esse email")
                 # tentou criar uma conta com o email q ja usou
 
@@ -104,51 +100,52 @@ class ClientUser:
 
         # Here the user sends a msg to another user
 
-        self.sockUser.connect((socket.gethostbyname(), PORT))
-
         mensagem = "2|1@" + self.getName() + "@" + dest + '@' + msg + '@'
 
         self.sockUser.send(mensagem)
-
-        self.sockUser.close()
     
     def sendMsgGroup(self, dest, msg):
-
-        self.sockUser.connect((socket.gethostbyname(), PORT))
 
         mensagem = "2|2@" + self.getName() + "@" + dest + '@' + msg + '@'
 
         self.sockUser.send(mensagem)
-
-        self.sockUser.close()
     
     def sendInviteGroup(self, who, nomeGrupo): # Who its an email
-
-        self.sockUser.connect((socket.gethostbyname(), PORT))
 
         mensagem = "5|" + nomeGrupo + '|' + who + '|'
 
         self.sockUser.send(mensagem)
-
-        self.sockUser.close()
     
     def acceptInGroup(self, nomeGrupo, whoIn):
-
-        self.sockUser.connect((socket.gethostbyname(), PORT))
 
         mensagem = "7|" + nomeGrupo + '|' + whoIn + '|'
 
         self.sockUser.send(mensagem)
-
-        self.sockUser.close()
     
     def askInGroup(self, nomeGrupo):
-
-        self.sockUser.connect((socket.gethostbyname(), PORT))
 
         mensagem = "6|" + nomeGrupo + '|' + self.getEmail() + '|'
 
         self.sockUser.send(mensagem)
 
-        self.sockUser.close()
+    def openConecc(self, grupo, emailOuNome):
+
+        mensagem = f"0|{2 if grupo else 1}|{emailOuNome}|"
+
+        self.sockUser.send(mensagem.encode("utf-32"))
     
+    def closeConecc(self):
+
+        self.sockUser.send(("1|".encode("utf-32")))
+    
+    def takeGroups(self):
+
+        self.sockUser.send("10|".encode("utf-32"))
+
+        return (list(self.sockUser.recv(1024).decode("utf-32").split('|')))
+    
+    def takeUsers(self):
+
+        self.sockUser.send("11|".encode("utf-32"))
+
+        return (list(self.sockUser.recv(1024).decode("utf-32").split('|')))   

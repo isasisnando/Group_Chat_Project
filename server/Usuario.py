@@ -91,8 +91,8 @@ class Usuario:
                 7 -> entra
                 8 -> cria grupo
                 9 -> sai Grupo
-                10 -> pede Users
-                11 -> pede Groups
+                11 -> pede Users
+                10 -> pede Groups
                 0|tipo|email ou nome
                 1|
                 4|emailDoNewUser
@@ -178,13 +178,13 @@ class Usuario:
                 case('10'):
                     groupsGrl = ""
                     for grupo in self.serv.groups.keys():
-                        groupsGrl += grupo
+                        groupsGrl += f"{grupo}|"
                     
                     self.sockUser.send(groupsGrl.encode("utf-32"))
                 case('11'):
                     usersGrl = ""
                     for user in self.serv.users.keys():
-                        usersGrl += user
+                        usersGrl += f"{user}|"
                     
                     self.sockUser.send(usersGrl.encode("utf-32"))
 

@@ -20,8 +20,27 @@ class ErrorMsg(tk.Tk):
 
         tk.Label(self.frame, text="Error: "+message, background="black", foreground="white", width=10, height=10).place(relwidth=1, y=75)
 
-        LogIn()
+class Notif(tk.Tk):
+
+    def __init__(self, message):
+        super().__init__()
+
+        self.geometry("200x200")
+
+        self.title("Notificação")
+
+        self.frame = tk.Frame(self, background="green")
+        self.frame.pack(fill="both", expand=True)
+
+        tk.Label(self.frame, text="Notificação: "+message, background="black", foreground="white", width=10, height=10).place(relwidth=1, y=75)
+
         self.mainloop()
+
+# class NotifWtButton(tk.Tk):
+
+#     def __init__(self, message):
+#         super().__init__
+
 
 class Start(tk.Tk):
     def __init__(self):
@@ -89,6 +108,7 @@ class LogIn(tk.Tk):
         
         self.destroy()
         ErrorMsg("EMAIL OU SENHA ERRADO.")
+        LogIn()
 
 class SignUp(tk.Tk):
     def __init__(self):
@@ -141,6 +161,15 @@ class SignUp(tk.Tk):
             self.user = ClientUser(name, email, passw, cep, self.socket)
 
             self.socket.send(message.encode('utf-32'))
+            resp = self.socket.recv(1024).decode("utf-32")
+
+            if (resp == "Já existe usuario com esse email"):
+
+                self.destroy()
+                ErrorMsg("Já existe usuario com esse email")
+                SignUp()
+                return
+            
             IntialPage(self.user)
 
 
@@ -230,6 +259,7 @@ class Chat(tk.Tk):
 
     def connectToGroup(self, chatName):
         # MAYBE TODO: end this
+        # acho q aqui tem q ser o pedido pra entrar, não?
         self.user.acceptInGroup(chatName)
         res = self.user.sockUser.recv(1024).encode("utf-32")
 
