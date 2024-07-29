@@ -8,7 +8,6 @@ class ClientUser:
     groups = dict()
 
     def __init__(self, _name, _email, _passw, _cep, _sock = None):
-
         self.name, self.email, self.passw, self.cep, self.sockUser = _name, _email, _passw, _cep, _sock
     
     def getName(self):
@@ -22,12 +21,9 @@ class ClientUser:
 
     
     def addFriend(self, who):
-
         # who é um email
         mensagem = "4|" + who + '|'
-
         self.sockUser.send(mensagem.encode("utf-32"))
-
          # A gente tem q fazer close aqui né?
 
     def rcvServer(self):
@@ -97,55 +93,42 @@ class ClientUser:
         # Tratar as mensagens de acordo com o estabelecido pelo servidor
     
     def sendMsgUser(self, dest, msg):
-
         # Here the user sends a msg to another user
-
         mensagem = "2|1@" + self.getName() + "@" + dest + '@' + msg + '@'
-
         self.sockUser.send(mensagem)
     
     def sendMsgGroup(self, dest, user,msg):
-
         mensagem = f"2|{dest}|{user}|{msg}"
-
         self.sockUser.send(mensagem.encode("utf-32"))
     
     def sendInviteGroup(self, who, nomeGrupo): # Who its an email
-
         mensagem = "5|" + nomeGrupo + '|' + who + '|'
-
         self.sockUser.send(mensagem.encode("utf-32"))
     
     def acceptInGroup(self, nomeGrupo):
-
         mensagem = "7|" + nomeGrupo + '|' + self.getEmail() + '|'
-
         self.sockUser.send(mensagem.encode("utf-32"))
     
     def askInGroup(self, nomeGrupo):
-
         mensagem = "6|" + nomeGrupo + '|' + self.getEmail() + '|'
-
         self.sockUser.send(mensagem)
 
     def openConecc(self, grupo, emailOuNome):
-
         mensagem = f"0|{2 if grupo else 1}|{emailOuNome}|"
-
         self.sockUser.send(mensagem.encode("utf-32"))
     
     def closeConecc(self):
-
         self.sockUser.send(("1|".encode("utf-32")))
     
     def takeGroups(self):
-
         self.sockUser.send(f"10|".encode("utf-32"))
-
         return (list(self.sockUser.recv(1024).decode("utf-32").split('|')))
     
     def takeUsers(self):
-
         self.sockUser.send(f"11|".encode("utf-32"))
-
         return (list(self.sockUser.recv(1024).decode("utf-32").split('|')))   
+    
+    def takeGroupMessagesWhenJoin(self, groupName):
+        self.sockUser.send(f"12|{groupName}|{self.getName()}".encode("utf-32"))
+        return (list(self.sockUser.recv(1024).decode("utf-32").split('|')))   
+        

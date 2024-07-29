@@ -7,6 +7,8 @@ from ClientUser import ClientUser
 
 HOST = "127.0.0.1"
 PORT = 3300
+PRIMARY_COLOR =  "#95ECEC"
+
 
 class ErrorMsg(tk.Tk):
     
@@ -52,7 +54,7 @@ class Start(tk.Tk):
 
         self.title("Bem vindo ao Chat Room")
 
-        self.frame = tk.Frame(self, background="#95ECEC")
+        self.frame = tk.Frame(self, background= "#95ECEC")
         self.frame.pack(fill="both", expand=True)
 
         tk.Label(self.frame, text="Bem vindo ao Chat Room").place(relwidth=1, y=12)
@@ -73,7 +75,7 @@ class LogIn(tk.Tk):
 
         self.title("insira seus dados")
 
-        self.frame = tk.Frame(self, background="#95ECEC")
+        self.frame = tk.Frame(self, background= "#95ECEC")
         self.frame.pack(fill="both", expand=True)
 
         tk.Label(self.frame, text="Insira seus dados:").place(relwidth=1, y = 20)
@@ -124,24 +126,24 @@ class SignUp(tk.Tk):
         self.title("Chat room")
         self.user = None
         
-        self.frame = tk.Frame(self, background="white")
+        self.frame = tk.Frame(self, background=PRIMARY_COLOR)
         self.frame.pack(fill="both", expand=True)
 
         tk.Label(self.frame, text="SignUp").place(relwidth=1, y=24)
 
-        self.name = tk.Label(self.frame, text= "Name", bg="gray")
+        self.name = tk.Label(self.frame, text= "Name", bg="white")
         self.name.place(x=80, y=150)
         self.name_input = tk.Entry(self.frame, width=20, bg="#D3D3D3")
         self.name_input.place(x=150, y= 150)
-        self.email = tk.Label(self.frame, text= "Email", bg="gray")
+        self.email = tk.Label(self.frame, text= "Email", bg="white")
         self.email.place(x=80, y= 180)
         self.email_input = tk.Entry(self.frame, width=25, bg="#D3D3D3")
         self.email_input.place(x=150, y= 180)
-        self.passw = tk.Label(self.frame, text= "Password", bg="gray")
+        self.passw = tk.Label(self.frame, text= "Password", bg="white")
         self.passw.place(x=80, y= 210)
         self.passw_input = tk.Entry(self.frame, width=25, bg="#D3D3D3", show="*")
         self.passw_input.place(x=150, y=210)
-        self.cep = tk.Label(self.frame, text= "CEP", bg="gray")
+        self.cep = tk.Label(self.frame, text= "CEP", bg="white")
         self.cep.place(x=80, y= 240)
         self.cep_input = tk.Entry(self.frame, width=20, bg="#D3D3D3")
         self.cep_input.place(x=150, y=240)
@@ -186,7 +188,7 @@ class IntialPage(tk.Tk):
 
         self.title("Tela de Inicial")
 
-        self.frame = tk.Frame(self, background="#95ECEC")
+        self.frame = tk.Frame(self, background= "#95ECEC")
         self.frame.pack(fill="both", expand=True)
 
         tk.Label(self.frame, text="Tela inicial").place(relwidth=1, y=24)
@@ -246,7 +248,7 @@ class CreateGroup(tk.Tk):
         
         self.user = user 
 
-        self.frame = tk.Frame(self, background="#95ECEC")
+        self.frame = tk.Frame(self, background= "#95ECEC")
         self.frame.pack(fill="both", expand=True)
 
         tk.Label(self.frame, text="Criação de grupo").place(relwidth=1, y=24)
@@ -274,8 +276,7 @@ class Chat(tk.Tk):
 
         self.running = True 
         self.interface_done = False
-        
-        self.connectToGroup()
+
         run_thread = threading.Thread(target=self.run_app)
         run_thread.daemon = True
         receive_thread = threading.Thread(target=self.receive)
@@ -284,32 +285,34 @@ class Chat(tk.Tk):
         receive_thread.start()
         
 
-
     def connectToGroup(self):
         self.user.acceptInGroup(self.group_name)
-        # res = self.user.sockUser.recv(1024).encode("utf-32")
-        # message = f"{self.user.getName()}: joined the chat"
-        # self.user.sockUser.send(message.encode("utf-32"))
-        # self.input_area.delete('1.0', 'end')
+        messages = self.user.takeGroupMessagesWhenJoin(self.group_name)
+        for message in messages: 
+            self.text_area.config(state="normal")
+            self.text_area.insert('end', message)
+            self.text_area.yview('end')
+            self.text_area.config(state= "disabled")
+
 
     def run_app(self):
         self.frame = tk.Tk()
         # self.geometry("400x650")
-        self.frame.configure(bg= "lightgray")
+        self.frame.configure(bg= "cyan")
         # self.title(f"{self.group_name} chat")
-        self.chat_label = tk.Label(self.frame, text = "Chat:", bg="lightgray")
+        self.chat_label = tk.Label(self.frame, text = f"{self.group_name} chat:", bg="lightgray")
         self.chat_label.config(font=("Arial", 12))
         self.chat_label.pack(padx=20, pady=5)
         
         self.text_area = tkinter.scrolledtext.ScrolledText(self.frame)
         self.text_area.pack(padx=20, pady=5)
-        self.text_area.config(state='disabled')
+        self.text_area.config(state='disabled', bg=PRIMARY_COLOR)
 
         self.msg_label = tk.Label(self.frame, text="Message:", bg="lightgray")
         self.msg_label.config(font=("Arial", 12))
         self.msg_label.pack(padx=20, pady=5)
 
-        self.input_area = tk.Text(self.frame, height=3)
+        self.input_area = tk.Text(self.frame, height=3, bg=PRIMARY_COLOR)
         self.input_area.pack(padx=20, pady=5)
 
         self.send_button = tk.Button(self.frame, text = "Send", command=self.write)
@@ -319,6 +322,8 @@ class Chat(tk.Tk):
         self.interface_done = True
         self.frame.protocol("WM_DELETE_WINDOW", self.stop)
         
+        self.connectToGroup()
+
         self.frame.mainloop()
 
     def write(self):

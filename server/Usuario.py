@@ -93,6 +93,7 @@ class Usuario:
                 9 -> sai Grupo
                 11 -> pede Users
                 10 -> pede Groups
+                12 -> Historico de mensagens do grupo
                 0|tipo|email ou nome
                 1|
                 2|groupName|userName|message
@@ -102,6 +103,7 @@ class Usuario:
                 7|grupo|email
                 8|grupo|email
                 9|NomeGrupo|email
+                12|groupName|userName
            """
 
             message = mensagem.split("|")
@@ -136,7 +138,7 @@ class Usuario:
                         group.messages.append(userMessage)
                         group.propagateMessage(userMessage)
                     except:
-                        pass
+                        print("ERRO")
                     
                 case ('3'):
                     break
@@ -163,6 +165,7 @@ class Usuario:
                     t.start()
 
                 case('7'):
+
                     self.serv.groups[message[1]].addUser(self)
                     self.serv.users[message[2]].addGroup(self.findGroup(message[1]))
                 
@@ -195,7 +198,16 @@ class Usuario:
                         usersGrl += f"{user}|"
                     
                     self.sockUser.send(usersGrl.encode("utf-32"))
-
+                case('12'):
+                    print(message)
+                    group = self.findGroup(message[1])
+                    group.propagateMessage(f"{message[2]} joined this chat")
+                    groupMessages = ""
+                    print(group)
+                    for message in group.messages:
+                        groupMessages += f"{message}|"
+                    print(groupMessages)
+                    self.sockUser.send(groupMessages.encode("utf-32"))
 
     def serverRcv(self, mensagem):
         
@@ -272,8 +284,9 @@ class Usuario:
         return
 
     def findGroup(self, groupName):
-        for group in self.groups:
+        for group in self.serv.groups.values():
             if group.name == groupName:
+                print("gn"+ groupName)
                 return group
     
     def getName(self):
