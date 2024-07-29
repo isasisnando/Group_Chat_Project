@@ -332,11 +332,11 @@ class Chat(tk.Tk):
     
     def stop(self):
         self.running = False
-        self.destroy()
+        self.frame.destroy()
         message = f"{self.user.getName()} has left the chat"
         self.user.sockUser.send(message.encode("utf-32"))
         self.input_area.delete('1.0', 'end')
-        self.user.sockUser.close()
+        # self.user.sockUser.close()
         IntialPage(self.user)
 
     def receive(self):

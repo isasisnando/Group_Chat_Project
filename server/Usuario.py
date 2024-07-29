@@ -7,6 +7,12 @@ mensagemUnauthorized = "Você não está autorizado a fazer isso"
 mensagemGroupNameUsed = "Nome de Grupo já existe"
 mensagemOutGrupo = "5@"
 
+CONNECTION_TYPE = {
+    "GROUP": "GROUP",
+    "CHANNEL": "CHANNEL",
+    "NONE": None,
+}
+
 class Usuario:
 
     users = list()
@@ -26,8 +32,8 @@ class Usuario:
 
         # Sockets definitions are already done in the server
 
-        self.conected = ""
-        self.tipoConec = -1
+        self.conectedGroup = None
+        self.tipoConec = CONNECTION_TYPE["NONE"]
         self.sockUser = sockUser 
     
     def receiveMsgUser(self, message, whoSent):
@@ -83,7 +89,7 @@ class Usuario:
             """
                 0 -> open connection
                 1 -> close
-                2 -> message for group/direct
+                2 -> message for group
                 3 -> logout
                 4 -> quer adicionar um novo usuario
                 5 -> manda convite
@@ -111,13 +117,13 @@ class Usuario:
             match message[0]:
             
                 case ('1'):
-                    self.conected = ""
+                    self.conectedGroup = None
                     self.tipoConec = -1
                 case ('0'):
                     try:
 
                         mensagemGrl = ""
-                        if (int(message[1]) == 1):
+                        if (int(message[0]) == 1):
                             for msg in self.usersChannel[message[2]]:
                                 mensagemGrl += f"{msg}|"
                         else:
@@ -133,7 +139,7 @@ class Usuario:
                 case ('2'):
                     try: 
                         group = self.serv.groups[message[1]]
-                        userMessage = f"{message[2]} : {message[3]}"
+                        userMessage = f"{message[2]}: {message[3]}"
                         group.messages.append(userMessage)
                         group.propagateMessage(userMessage)
                     except:
@@ -164,7 +170,8 @@ class Usuario:
                     t.start()
 
                 case('7'):
-
+                    self.tipoConec = CONNECTION_TYPE["GROUP"]
+                    self.conectedGroup = message[1]
                     self.serv.groups[message[1]].addUser(self)
                     self.serv.users[message[2]].addGroup(self.findGroup(message[1]))
                 

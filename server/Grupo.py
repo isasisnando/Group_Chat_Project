@@ -17,7 +17,7 @@ class Grupo:
     def propagateMessage(self, message): 
         self.admin.sockUser.send(message.encode("utf-32"))
         for user in self.users.values():
-            if user.getName() != self.admin.getName(): # TODO: dont send 2 messages for admin
+            if user.getName() != self.admin.getName() and user.conectedGroup == self.name: # TODO: dont send 2 messages for admin
                 try:
                     user.sockUser.send(message.encode("utf-32"))
                 except:
