@@ -116,6 +116,7 @@ class LogIn(tk.Tk):
             return
         
         self.destroy()
+        self.sockUser.close()
         ErrorMsg("EMAIL OU SENHA ERRADO.")
         LogIn()
 
@@ -177,6 +178,7 @@ class SignUp(tk.Tk):
 
                 self.destroy()
                 ErrorMsg("Já existe usuario com esse email")
+                self.socket.close()
                 SignUp()
                 return
             
@@ -235,7 +237,7 @@ class IntialPage(tk.Tk):
 
     def choose_group(self):
         self.destroy()
-        Chat(self.user, self.groups_click.get())
+        Chat(self.user, self.groups_click.get(), "GROUP")
 
     def choose_user(self):
         self.destroy()
@@ -247,8 +249,6 @@ class IntialPage(tk.Tk):
     def create_group(self):
         self.destroy()
         CreateGroup(self.user)
-
-
 
 class CreateGroup(tk.Tk):
     def __init__(self, user: ClientUser):
@@ -279,11 +279,11 @@ class CreateGroup(tk.Tk):
         IntialPage(self.user)
 
 class Chat(tk.Tk): 
-    def __init__(self, user: ClientUser, chatName):
+    def __init__(self, user: ClientUser, chatName, tipoChat):
         super().__init__()
         self.user = user
-        self.group_name = chatName
-
+        self.name = chatName
+        self.tipoChat = tipoChat
         self.running = True 
         self.interface_done = False
 
@@ -293,12 +293,18 @@ class Chat(tk.Tk):
         receive_thread.daemon = True
         run_thread.start()
         receive_thread.start()
-        
+    
+    def connectToUser(self):
+        messages = self.user.openConection(CONNECTION_TYPE["CHANNEL"], self.name)
+        for message in messages: 
+            self.text_area.config(state="normal")
+            self.text_area.insert('end', message)
+            self.text_area.yview('end')
+            self.text_area.config(state= "disabled")
 
     def connectToGroup(self):
-        self.user.acceptInGroup(self.group_name)
-        messages = self.user.openConection(CONNECTION_TYPE["GROUP"], self.group_name)
-        # messages = self.user.takeGroupMessagesWhenJoin(self.group_name)
+        self.user.acceptInGroup(self.name)
+        messages = self.user.openConection(CONNECTION_TYPE["GROUP"], self.name)
         for message in messages: 
             self.text_area.config(state="normal")
             self.text_area.insert('end', message)
@@ -311,7 +317,7 @@ class Chat(tk.Tk):
         # self.geometry("400x650")
         self.frame.configure(bg= "cyan")
         # self.title(f"{self.group_name} chat")
-        self.chat_label = tk.Label(self.frame, text = f"{self.group_name} chat:", bg="lightgray")
+        self.chat_label = tk.Label(self.frame, text = f"{self.name} chat:", bg="lightgray")
         self.chat_label.config(font=("Arial", 12))
         self.chat_label.pack(padx=20, pady=5)
         
@@ -333,12 +339,15 @@ class Chat(tk.Tk):
         self.interface_done = True
         self.frame.protocol("WM_DELETE_WINDOW", self.stop)
         
-        self.connectToGroup()
-
+        if(self.tipoChat == CONNECTION_TYPE["GROUP"]):
+            self.connectToGroup()
+        else:
+            self.connectToUser()
+        
         self.frame.mainloop()
 
     def write(self):
-        self.user.sendMsgGroup(self.group_name, self.user.getName(), self.input_area.get('1.0', 'end'))
+        self.user.sendMsgGroup(self.name, self.user.getName(), self.input_area.get('1.0', 'end'))
         self.input_area.delete('1.0', 'end')
     
     def stop(self):
@@ -383,9 +392,23 @@ class PerfilScreen(tk.Tk):
 
         self.user.sockUser.send((f"12|{personName}").encode("utf-32"))
 
-        resp = self.user.sockUser.recv(1024).decode("utf-32")
+        self.resp = self.user.sockUser.recv(1024).decode("utf-32")
 
-        resp = resp.split('|')
+        self.resp = self.resp.split('|')
 
-        tk.Label(self.frame, )
+        tk.Label(self.frame, text="Nome:", background="#4EABB0", foreground="#006666", font=("Arial", 14)).place(y=75, x=24)
+        tk.Label(self.frame, text="Email:", background="#4EABB0",foreground="#006666", font=("Arial", 14)).place(y=140, x=24)
+        tk.Label(self.frame, text="CEP:", background="#4EABB0",foreground="#006666", font=("Arial", 14)).place(y=205, x=24)
+        tk.Label(self.frame, text=self.resp[0], background="#4EABB0", foreground="#006666", font=("Arial", 14)).place(y=75, x=95)
+        tk.Label(self.frame, text=self.resp[1], background="#4EABB0",foreground="#006666", font=("Arial", 14)).place(y=140, x=95)
+        tk.Label(self.frame, text=self.resp[2], background="#4EABB0",foreground="#006666", font=("Arial", 14)).place(y=205, x=80)
+        tk.Button(self.frame, command=self.openChat, text="Abrir o chat", bg="red", relief="raised", height=1, width=10).place(y=250, x=150)
+    
+    def openChat(self):
+
+        self.user.sockUser.send((f"4|{self.resp[0]}").encode("utf-32"))
+
+        self.destroy()
+        Chat(self.user, self.resp[0], "CHANNEL")
+        pass
 Start()

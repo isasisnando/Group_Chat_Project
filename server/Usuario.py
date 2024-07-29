@@ -64,7 +64,7 @@ class Usuario:
                 0|tipo|email ou nome
                 1|
                 2|groupName|userName|message
-                4|emailDoNewUser
+                4|nome
                 5|grupo|email
                 6|grupo|email
                 7|grupo|email
@@ -88,9 +88,13 @@ class Usuario:
                             for message in group.messages:
                                 past_messages += f"{message}|"
                         else:
-                            past_messages = ""
-                            for message in self.usersChannel[message[2]]:
-                                past_messages += f"{message}|" 
+                            print(message)
+                            for mensagem in self.usersChannel[message[2]]:
+                                past_messages += f"{message}|"
+
+                        print(past_messages)
+                        if(past_messages == ""):
+                            past_messages = " " 
                         self.sockUser.send(past_messages.encode("utf-32"))
                     except: 
                         print("ERRO1")
@@ -116,11 +120,10 @@ class Usuario:
                 case ('4'):
 
                     if (message[1] in self.usersChannel.keys()):
-                        pass
-                    t = threading.Thread(target= self.addUser, args=(self.serv.users[message[1]]))
-                    t1 = threading.Thread(target= self.serv.users[message[1]].addUser, args=(self))
-                    t1.start()
-                    t.start()
+                        continue
+                    self.addUser(self.serv.users[message[1]])
+                    self.serv.users[message[1]].addUser(self.serv.users[self.name])
+
                 case('5'):
                     if (self.name != self.serv.groups[message[1]].getAdmin()):
                         self.sockUser.send(mensagemUnauthorized.encode("utf-32"))
@@ -178,7 +181,7 @@ class Usuario:
     def addUser(self, userStuff):   # esse userStuff é um objeto Usuario
 
         self.users.append(userStuff)
-        self.usersChannel[userStuff.getEmail()] = list()
+        self.usersChannel[userStuff.getName()] = list()
         return
     
     def rcvInvite(self, group):

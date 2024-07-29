@@ -97,10 +97,9 @@ class ClientUser:
                 return("Voce entrou no grupo", mensagemSplitada[1])
         # Tratar as mensagens de acordo com o estabelecido pelo servidor
     
-    def sendMsgUser(self, dest, msg):
-        # Here the user sends a msg to another user
-        mensagem = "2|1@" + self.getName() + "@" + dest + '@' + msg + '@'
-        self.sockUser.send(mensagem)
+    def sendMsgUser(self, dest, user, msg):
+        mensagem = f"2|CHANNEL|{dest}|{user}|{msg}"
+        self.sockUser.send(mensagem.encode("utf-32"))
     
     def sendMsgGroup(self, dest, user,msg):
         mensagem = f"2|GROUP|{dest}|{user}|{msg}"
