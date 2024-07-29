@@ -9,6 +9,11 @@ HOST = "127.0.0.1"
 PORT = 3300
 PRIMARY_COLOR =  "#95ECEC"
 
+CONNECTION_TYPE = {
+    "GROUP": "GROUP",
+    "CHANNEL": "CHANNEL",
+    "NONE": None,
+}
 
 class ErrorMsg(tk.Tk):
     
@@ -287,7 +292,8 @@ class Chat(tk.Tk):
 
     def connectToGroup(self):
         self.user.acceptInGroup(self.group_name)
-        messages = self.user.takeGroupMessagesWhenJoin(self.group_name)
+        messages = self.user.openConection(CONNECTION_TYPE["GROUP"], self.group_name)
+        # messages = self.user.takeGroupMessagesWhenJoin(self.group_name)
         for message in messages: 
             self.text_area.config(state="normal")
             self.text_area.insert('end', message)
@@ -336,7 +342,7 @@ class Chat(tk.Tk):
         message = f"{self.user.getName()} has left the chat"
         self.user.sockUser.send(message.encode("utf-32"))
         self.input_area.delete('1.0', 'end')
-        # self.user.sockUser.close()
+        self.user.closeConection()
         IntialPage(self.user)
 
     def receive(self):

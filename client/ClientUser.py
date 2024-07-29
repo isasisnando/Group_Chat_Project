@@ -1,6 +1,11 @@
 import socket
 
 PORT = 3300
+CONNECTION_TYPE = {
+    "GROUP": "GROUP",
+    "CHANNEL": "CHANNEL",
+    "NONE": None,
+}
 
 class ClientUser:
 
@@ -113,11 +118,12 @@ class ClientUser:
         mensagem = "6|" + nomeGrupo + '|' + self.getEmail() + '|'
         self.sockUser.send(mensagem)
 
-    def openConecc(self, grupo, emailOuNome):
-        mensagem = f"0|{2 if grupo else 1}|{emailOuNome}|"
+    def openConection(self, type, channel_or_group_name):
+        mensagem = f"0|{type}|{channel_or_group_name}"
         self.sockUser.send(mensagem.encode("utf-32"))
+        return (list(self.sockUser.recv(1024).decode("utf-32").split('|')))   
     
-    def closeConecc(self):
+    def closeConection(self):
         self.sockUser.send(("1|".encode("utf-32")))
     
     def takeGroups(self):
@@ -128,7 +134,3 @@ class ClientUser:
         self.sockUser.send(f"11|".encode("utf-32"))
         return (list(self.sockUser.recv(1024).decode("utf-32").split('|')))   
     
-    def takeGroupMessagesWhenJoin(self, groupName):
-        self.sockUser.send(f"12|{groupName}|{self.getName()}".encode("utf-32"))
-        return (list(self.sockUser.recv(1024).decode("utf-32").split('|')))   
-        

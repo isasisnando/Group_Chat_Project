@@ -13,6 +13,7 @@ CONNECTION_TYPE = {
     "NONE": None,
 }
 
+
 class Usuario:
 
     users = list()
@@ -82,7 +83,7 @@ class Usuario:
        while True:
            
             mensagem = self.sockUser.recv(1024).decode("utf-32")
-
+            
             if (mensagem == ""):
                 continue
            
@@ -113,29 +114,27 @@ class Usuario:
            """
 
             message = mensagem.split("|")
-
+            print(message)
             match message[0]:
-            
+                case ('0'):
+                    try:
+                        self.tipoConec = message[1]
+                        self.conected = message[2]
+
+                        past_messages = ""
+                        if(message[1] == CONNECTION_TYPE["GROUP"]):
+                            group = self.findGroup(message[2])
+                            group.propagateMessage(f"{message[2]} joined this chat\n")
+                            for message in group.messages:
+                                past_messages += f"{message}|"
+                        else:
+                            pass # TODO: WHEN CLASS CANAL EXIST
+                        self.sockUser.send(past_messages.encode("utf-32"))
+                    except: 
+                        print("ERRO")
                 case ('1'):
                     self.conectedGroup = None
                     self.tipoConec = -1
-                case ('0'):
-                    try:
-
-                        mensagemGrl = ""
-                        if (int(message[0]) == 1):
-                            for msg in self.usersChannel[message[2]]:
-                                mensagemGrl += f"{msg}|"
-                        else:
-                            for msg in self.groupssChannel[message[2]]:
-                                mensagemGrl += f"{msg}|"
-                        
-                        self.sockUser.send(mensagemGrl.encode("utf-32"))
-                        
-                        self.conected = message[2]
-                        self.tipoConec = int(message[1])
-                    except: 
-                        pass
                 case ('2'):
                     try: 
                         group = self.serv.groups[message[1]]
@@ -204,13 +203,6 @@ class Usuario:
                         usersGrl += f"{user}|"
                     
                     self.sockUser.send(usersGrl.encode("utf-32"))
-                case('12'):
-                    group = self.findGroup(message[1])
-                    group.propagateMessage(f"{message[2]} joined this chat\n")
-                    groupMessages = ""
-                    for message in group.messages:
-                        groupMessages += f"{message}|"
-                    self.sockUser.send(groupMessages.encode("utf-32"))
 
     def serverRcv(self, mensagem):
         
