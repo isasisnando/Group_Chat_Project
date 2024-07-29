@@ -217,7 +217,7 @@ class IntialPage(tk.Tk):
         self.users_dropdown = tk.OptionMenu(self.frame, self.users_click, None,*self.user.takeUsers())
         self.users_dropdown.place(x=230, y=90)
        
-        self.users_button_dropdown = tk.Button(self.frame, background="#FFFFFF",text="Escolher usuário", command=self.choose_group)
+        self.users_button_dropdown = tk.Button(self.frame, background="#FFFFFF",text="Escolher usuário", command=self.choose_user)
         self.users_button_dropdown.place(x=230, y=125)
 
         self.groups_dropdown_label = tk.Label(self.frame, text="Grupos:", background="white")
@@ -243,6 +243,10 @@ class IntialPage(tk.Tk):
     def create_group(self):
         self.destroy()
         CreateGroup(self.user)
+
+    def create_group(self):
+        self.destroy()
+        Initia(self.user)
 
 
 class CreateGroup(tk.Tk):
