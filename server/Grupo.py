@@ -12,7 +12,7 @@ class Grupo:
     def __init__(self, name, admin):
 
         self.name, self.admin = name, admin 
-        self.users.append(admin)
+        self.users[admin.getName()] = admin
     
     def rcvAndPropMsg(self, mensagem):
 

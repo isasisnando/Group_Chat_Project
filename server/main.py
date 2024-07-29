@@ -8,6 +8,7 @@ HOST = "127.0.0.1"
 PORT = 3300
 
 mensagemExistsUserEmail = "Já existe usuario com esse email"
+okMessage = "OK"
 
 class Server: 
     def __init__(self):
@@ -33,7 +34,7 @@ class Server:
 
                 client.send(mensagem.encode("utf-32"))
 
-                t = threading.Thread(target= user.start(), args=())
+                t = threading.Thread(target= user.start, args=())
                 t.start()
                 return
         
@@ -41,10 +42,9 @@ class Server:
         client.send(mensagem.encode("utf-32"))
 
     def sign_up(self, message, client, address):
-
         user = Usuario(message[2], message[1], message[3], message[4], address, client, self)
         self.users[user.getEmail()] = user
-        t = threading.Thread(target= user.start(), args=())
+        t = threading.Thread(target= user.start, args=())
         t.start()
 
     def receive(self):
@@ -79,9 +79,10 @@ class Server:
 
                         client.send(mensagemExistsUserEmail.encode("utf-32"))
                         continue
-
+                    client.send(okMessage.encode("utf-32"))
                     t = threading.Thread(target= self.sign_up, args=(message, client, address))
                     t.start()
+
 
     def start(self):
         self.receive()

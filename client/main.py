@@ -161,6 +161,7 @@ class SignUp(tk.Tk):
             self.user = ClientUser(name, email, passw, cep, self.socket)
 
             self.socket.send(message.encode('utf-32'))
+
             resp = self.socket.recv(1024).decode("utf-32")
 
             if (resp == "Já existe usuario com esse email"):
@@ -187,7 +188,10 @@ class IntialPage(tk.Tk):
         self.frame.pack(fill="both", expand=True)
 
         tk.Label(self.frame, text="Tela inicial").place(relwidth=1, y=24)
-        
+
+        self.create_group_btn = tk.Button(self.frame, command=self.create_group, text="Criar grupo", bg="red", relief="raised", height=1, width=10)
+        self.create_group_btn.place(x=0, y=0)
+
         tk.Label(self.frame, text="Nome:").place(x=50, y= 100)
         tk.Label(self.frame, text=self.user.getName()).place(x= 90, y= 100)
         tk.Label(self.frame, text="Email:").place(x=50, y= 135)
@@ -201,7 +205,7 @@ class IntialPage(tk.Tk):
         self.users_dropdown = tk.OptionMenu(self.frame, tk.StringVar(self.frame).set("Escolher") , None,*self.user.groups)
         self.users_dropdown.place(x=230, y=90)
 
-        self.users_button_dropdown = tk.Button(self.frame, background="#FFFFFF",text="Escolha um user", command=self.choose_group)
+        self.users_button_dropdown = tk.Button(self.frame, background="#FFFFFF",text="Escolher grupo", command=self.choose_group)
         self.users_button_dropdown.place(x=230, y=125)
 
         self.groups_dropdown_label = tk.Label(self.frame, text="Usuários:", background="white")
@@ -212,7 +216,7 @@ class IntialPage(tk.Tk):
         self.groups_dropdown = tk.OptionMenu(self.frame, self.click , None,*self.user.groups)
         self.groups_dropdown.place(x=230, y=165)
 
-        self.groups_button_dropdown = tk.Button(self.frame, background="#FFFFFF",text="Escolha o grupo", command=self.choose_group)
+        self.groups_button_dropdown = tk.Button(self.frame, background="#FFFFFF",text="Escolher usuário", command=self.choose_group)
         self.groups_button_dropdown.place(x=230, y=200)
 
         self.frame.mainloop()
@@ -224,7 +228,37 @@ class IntialPage(tk.Tk):
     def change_dropdown_label(self):
         self.dropdown_label.config(text = self.clicked.get())
 
+    def create_group(self):
+        CreateGroup(self.user)
 
+
+class CreateGroup(tk.Tk):
+    def __init__(self, user: ClientUser):
+        super().__init__()
+        self.geometry("400x300")
+
+        self.title("Create group")
+        
+        self.user = user 
+
+        self.frame = tk.Frame(self, background="#95ECEC")
+        self.frame.pack(fill="both", expand=True)
+
+        tk.Label(self.frame, text="Criação de grupo").place(relwidth=1, y=24)
+
+        self.group_name = tk.Label(self.frame, text= "Nome do grupo", bg="white")
+        self.group_name.place(x=80, y=150)
+        self.group_name_input = tk.Entry(self.frame, width=20, bg="#D3D3D3")
+        self.group_name_input.place(x=80, y= 180)
+
+        self.submit = tk.Button(self.frame, command=self.create_group, text="Criar Grupo", bg="red", relief="raised", height=1, width=10)
+        self.submit.place(x=155, y=210)
+
+
+    def create_group(self):
+        message = f"8|{self.group_name_input.get()}|{self.user.getEmail()}"
+        self.user.sockUser.send(message.encode("utf-32"))
+        self.destroy()
 
 class Chat(tk.Tk): 
     def __init__(self, user: ClientUser, chatName):

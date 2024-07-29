@@ -165,9 +165,10 @@ class Usuario:
                     newGrupo = Grupo(message[1], self.serv.users[message[2]])
 
                     self.serv.groups[message[1]] = newGrupo
-
-                    t = threading.Thread(target= self.serv.users[message[2]].addGroup, args=(newGrupo))
-                    t.start()
+                    # t = threading.Thread(target= self.serv.users[message[2]].addGroup, args=(newGrupo))
+                    # t.start()
+                    
+                    print(self.serv.groups)
                 
                 case('9'):
 
