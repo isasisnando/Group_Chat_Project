@@ -199,36 +199,40 @@ class IntialPage(tk.Tk):
         tk.Label(self.frame, text="CPF:").place(x= 50, y= 170)
         tk.Label(self.frame, text=self.user.getCep()).place(x= 90, y= 170)
 
-        self.users_dropdown_label = tk.Label(self.frame, text="Grupos:", background="white")
+        self.users_dropdown_label = tk.Label(self.frame, text="Usuários:", background="white")
         self.users_dropdown_label.place(x=170, y=90)
 
-        self.users_dropdown = tk.OptionMenu(self.frame, tk.StringVar(self.frame).set("Escolher") , None,*self.user.groups)
-        self.users_dropdown.place(x=230, y=90)
 
-        self.users_button_dropdown = tk.Button(self.frame, background="#FFFFFF",text="Escolher grupo", command=self.choose_group)
+        self.users_click = tk.StringVar(self.frame)
+        self.users_click.set("Escolher")
+        self.users_dropdown = tk.OptionMenu(self.frame, self.users_click, None,*self.user.takeUsers())
+        self.users_dropdown.place(x=230, y=90)
+       
+        self.users_button_dropdown = tk.Button(self.frame, background="#FFFFFF",text="Escolher usuário", command=self.choose_group)
         self.users_button_dropdown.place(x=230, y=125)
 
-        self.groups_dropdown_label = tk.Label(self.frame, text="Usuários:", background="white")
+        self.groups_dropdown_label = tk.Label(self.frame, text="Grupos:", background="white")
         self.groups_dropdown_label.place(x=170, y=165)
 
-        self.click = tk.StringVar(self.frame)
-        self.click.set("Escolher")
-        self.groups_dropdown = tk.OptionMenu(self.frame, self.click , None,*self.user.groups)
+        self.groups_click = tk.StringVar(self.frame)
+        self.groups_click.set("Escolher")
+        self.groups_dropdown = tk.OptionMenu(self.frame, self.groups_click , None, *self.user.takeGroups())
         self.groups_dropdown.place(x=230, y=165)
 
-        self.groups_button_dropdown = tk.Button(self.frame, background="#FFFFFF",text="Escolher usuário", command=self.choose_group)
+        self.groups_button_dropdown = tk.Button(self.frame, background="#FFFFFF",text="Escolher grupo", command=self.choose_group)
         self.groups_button_dropdown.place(x=230, y=200)
 
         self.frame.mainloop()
 
     def choose_group(self):
+        self.destroy()
         Chat(self.user, self.groups_dropdown.get())
-
 
     def change_dropdown_label(self):
         self.dropdown_label.config(text = self.clicked.get())
 
     def create_group(self):
+        self.destroy()
         CreateGroup(self.user)
 
 
@@ -236,7 +240,6 @@ class CreateGroup(tk.Tk):
     def __init__(self, user: ClientUser):
         super().__init__()
         self.geometry("400x300")
-
         self.title("Create group")
         
         self.user = user 
@@ -259,6 +262,7 @@ class CreateGroup(tk.Tk):
         message = f"8|{self.group_name_input.get()}|{self.user.getEmail()}"
         self.user.sockUser.send(message.encode("utf-32"))
         self.destroy()
+        IntialPage(self.user)
 
 class Chat(tk.Tk): 
     def __init__(self, user: ClientUser, chatName):
