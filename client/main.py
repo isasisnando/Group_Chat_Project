@@ -246,7 +246,7 @@ class IntialPage(tk.Tk):
 
     def create_group(self):
         self.destroy()
-        Initia(self.user)
+        PerfilScreen(self.user, self.users_click.get())
 
 
 class CreateGroup(tk.Tk):
@@ -367,7 +367,7 @@ class Chat(tk.Tk):
 
 class PerfilScreen(tk.Tk):
     
-    def __init__(self, user : ClientUser, persoName : str):
+    def __init__(self, user : ClientUser, personName : str):
         super().__init__()
 
         self.geometry("360x300")
@@ -380,7 +380,7 @@ class PerfilScreen(tk.Tk):
 
         self.user = user
 
-        self.user.sockUser.send((f"12|{persoName}").encode("utf-32"))
+        self.user.sockUser.send((f"12|{personName}").encode("utf-32"))
 
         resp = self.user.sockUser.recv(1024).decode("utf-32")
 
