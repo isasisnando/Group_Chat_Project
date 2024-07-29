@@ -20,17 +20,10 @@ class Usuario:
     groups = list()
     usersChannel = dict() # dict<name, msgs>
 
-    # seria interessante ter outra lista com outros usuarios
-    # os quais ele já iniciou uma conversa? Acho q essa lista é
-    # algo já implementado naquele exemplo de IRC, link:
-    # https://github.com/Gabrielcarvfer/Redes-de-Computadores-UnB/blob/master/trabalhos/20181/Lab2/ExemploIRC.py
-
     def __init__(self, name, email, passw, cep, ipv4, sockUser, server) -> None:
 
         self.name, self.email, self.passw, self.cep, self.ipv4 = name, email, passw, cep, ipv4
         self.serv = server
-
-        # Sockets definitions are already done in the server
 
         self.conectedGroup = None
         self.tipoConec = CONNECTION_TYPE["NONE"]
@@ -38,10 +31,6 @@ class Usuario:
     
     def receiveMsgUser(self, message, whoSent):
 
-        # Devolvemos essa mensagem pro nosso usuario
-
-        # self.usersChannel[whoSent].append(message)
-        # tipo conec = 1 - > Usuario
         if (self.tipoConec == CONNECTION_TYPE["CHANNEL"] and self.conected == whoSent):
             self.sockUser.send(message.encode("utf-32"))
     
@@ -51,7 +40,6 @@ class Usuario:
             self.sockUser.send(message.encode("utf-32"))
     
     def start(self):
-
        while True:
            
             mensagem = self.sockUser.recv(1024).decode("utf-32")
@@ -100,7 +88,9 @@ class Usuario:
                             for message in group.messages:
                                 past_messages += f"{message}|"
                         else:
-                            pass # TODO: WHEN CLASS CANAL EXIST
+                            past_messages = ""
+                            for message in self.usersChannel[message[2]]:
+                                past_messages += f"{message}|" 
                         self.sockUser.send(past_messages.encode("utf-32"))
                     except: 
                         print("ERRO1")
@@ -110,7 +100,6 @@ class Usuario:
                 case ('2'):
                     try: 
                         if(message[1] == CONNECTION_TYPE["GROUP"]):
-                            print("ue")
                             group = self.serv.groups[message[2]]
                             userMessage = f"{message[3]}: {message[4]}"
                             group.messages.append(userMessage)
@@ -189,7 +178,6 @@ class Usuario:
     def addUser(self, userStuff):   # esse userStuff é um objeto Usuario
 
         self.users.append(userStuff)
-
         self.usersChannel[userStuff.getEmail()] = list()
         return
     

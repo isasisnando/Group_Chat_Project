@@ -205,7 +205,7 @@ class IntialPage(tk.Tk):
         tk.Label(self.frame, text=self.user.getName()).place(x= 90, y= 100)
         tk.Label(self.frame, text="Email:").place(x=50, y= 135)
         tk.Label(self.frame, text=self.user.getEmail()).place(x= 90, y= 135)
-        tk.Label(self.frame, text="CPF:").place(x= 50, y= 170)
+        tk.Label(self.frame, text="CEP:").place(x= 50, y= 170)
         tk.Label(self.frame, text=self.user.getCep()).place(x= 90, y= 170)
 
         self.users_dropdown_label = tk.Label(self.frame, text="Usuários:", background="white")
@@ -382,5 +382,5 @@ class PerfilScreen(tk.Tk):
 
         resp = resp.split('|')
 
-
+        tk.Label(self.frame, )
 Start()
