@@ -201,7 +201,7 @@ class Usuario:
                 case('12'):
                     print(message)
                     group = self.findGroup(message[1])
-                    group.propagateMessage(f"{message[2]} joined this chat")
+                    group.propagateMessage(f"{message[2]} joined this chat\n")
                     groupMessages = ""
                     print(group)
                     for message in group.messages:
