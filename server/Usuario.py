@@ -41,18 +41,14 @@ class Usuario:
 
         # Devolvemos essa mensagem pro nosso usuario
 
-        self.usersChannel[whoSent].append(message)
+        # self.usersChannel[whoSent].append(message)
         # tipo conec = 1 - > Usuario
-        if (self.tipoConec == 1 and self.conected == whoSent):
+        if (self.tipoConec == CONNECTION_TYPE["CHANNEL"] and self.conected == whoSent):
             self.sockUser.send(message.encode("utf-32"))
     
     def receiveMsgGrupo(self, message, whoSent):
 
-        # vc está garantidamente no grupo
-        # Devolvemos essa mensagem pro nosso usuario
-        self.groupsChannel[whoSent].append(message)
-        # tipo conec = 2 - > grupo
-        if (self.tipoConec == 2 and self.conected == whoSent):
+        if (self.tipoConec == CONNECTION_TYPE["GROUP"] and self.conected == whoSent):
             self.sockUser.send(message.encode("utf-32"))
     
     def sendMsgToUser(self, message, dest):
@@ -124,7 +120,7 @@ class Usuario:
                         past_messages = ""
                         if(message[1] == CONNECTION_TYPE["GROUP"]):
                             group = self.findGroup(message[2])
-                            group.propagateMessage(f"{message[2]} joined this chat\n")
+                            group.propagateMessage(f"{self.getName()} joined this chat\n")
                             for message in group.messages:
                                 past_messages += f"{message}|"
                         else:
@@ -140,7 +136,7 @@ class Usuario:
                         group = self.serv.groups[message[1]]
                         userMessage = f"{message[2]}: {message[3]}"
                         group.messages.append(userMessage)
-                        group.propagateMessage(userMessage)
+                        group.rcvAndPropMsg(userMessage)
                     except:
                         print("ERRO")
                     
@@ -294,6 +290,7 @@ class Usuario:
     
     def getCep(self):
         return self.cep
+    
 
 # Acho q vamos precisar de uma classe pra gerar os usuarios e os grupos
 # no server side
