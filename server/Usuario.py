@@ -131,7 +131,6 @@ class Usuario:
                     except: 
                         pass
                 case ('2'):
-                    print(message)
                     try: 
                         group = self.serv.groups[message[1]]
                         userMessage = f"{message[2]} : {message[3]}"
@@ -199,14 +198,11 @@ class Usuario:
                     
                     self.sockUser.send(usersGrl.encode("utf-32"))
                 case('12'):
-                    print(message)
                     group = self.findGroup(message[1])
                     group.propagateMessage(f"{message[2]} joined this chat\n")
                     groupMessages = ""
-                    print(group)
                     for message in group.messages:
                         groupMessages += f"{message}|"
-                    print(groupMessages)
                     self.sockUser.send(groupMessages.encode("utf-32"))
 
     def serverRcv(self, mensagem):
@@ -286,7 +282,6 @@ class Usuario:
     def findGroup(self, groupName):
         for group in self.serv.groups.values():
             if group.name == groupName:
-                print("gn"+ groupName)
                 return group
     
     def getName(self):
