@@ -18,8 +18,7 @@ class Usuario:
 
     users = list()
     groups = list()
-    usersChannel = dict() # dict<email, msgs>
-    groupsChannel = dict() # dict<nome, msgs>
+    usersChannel = dict() # dict<name, msgs>
 
     # seria interessante ter outra lista com outros usuarios
     # os quais ele já iniciou uma conversa? Acho q essa lista é
@@ -51,29 +50,6 @@ class Usuario:
         if (self.tipoConec == CONNECTION_TYPE["GROUP"] and self.conected == whoSent):
             self.sockUser.send(message.encode("utf-32"))
     
-    def sendMsgToUser(self, message, dest):
-
-        # procuramos se estamos mandando msg pra algum usuario
-        # com algum canal
-
-        for user in self.users.keys():
-
-            if(dest == user.getName()):
-                
-                self.usersChannel[user.getEmail()].append(message)
-                return list(message, user)
-    
-    def sendMsgToGroup(self, message, dest):
-
-        # procuramos se estamos mandando mensagem para algum grupo
-        # com algum canal já existente
-        for grupo in self.grupos.keys():
-
-            if(dest == grupo.getName()):
-
-                self.groupsChannel[grupo.getName()].append(message)
-                return list(message, grupo)
-    
     def start(self):
 
        while True:
@@ -96,7 +72,7 @@ class Usuario:
                 9 -> sai Grupo
                 11 -> pede Users
                 10 -> pede Groups
-                12 -> Historico de mensagens do grupo
+                12 -> Quero infos desse usuario
                 0|tipo|email ou nome
                 1|
                 2|groupName|userName|message
@@ -106,7 +82,7 @@ class Usuario:
                 7|grupo|email
                 8|grupo|email
                 9|NomeGrupo|email
-                12|groupName|userName
+                12|userName
            """
 
             message = mensagem.split("|")
@@ -127,25 +103,31 @@ class Usuario:
                             pass # TODO: WHEN CLASS CANAL EXIST
                         self.sockUser.send(past_messages.encode("utf-32"))
                     except: 
-                        print("ERRO")
+                        print("ERRO1")
                 case ('1'):
                     self.conectedGroup = None
                     self.tipoConec = -1
                 case ('2'):
                     try: 
-                        group = self.serv.groups[message[1]]
-                        userMessage = f"{message[2]}: {message[3]}"
-                        group.messages.append(userMessage)
-                        group.rcvAndPropMsg(userMessage)
+                        if(message[1] == CONNECTION_TYPE["GROUP"]):
+                            print("ue")
+                            group = self.serv.groups[message[2]]
+                            userMessage = f"{message[3]}: {message[4]}"
+                            group.messages.append(userMessage)
+                            group.propagateMessage(userMessage)
+                        elif(message[1] == CONNECTION_TYPE["CHANNEL"]):
+                            userMessage = f"{message[3]}: {message[4]}"
+                            self.receiveMsgUser(userMessage, message[2])
+                            self.serv.users[message[2]].receiveMsgUser(userMessage, self.getName())
                     except:
-                        print("ERRO")
+                        print("ERRO2")
                     
                 case ('3'):
                     break
                 case ('4'):
-    
-                    # Adiciona um novo usuario para o usuario atual
-                    # precisa de threading aqui? acho q já começa a ficar muito muito
+
+                    if (message[1] in self.usersChannel.keys()):
+                        pass
                     t = threading.Thread(target= self.addUser, args=(self.serv.users[message[1]]))
                     t1 = threading.Thread(target= self.serv.users[message[1]].addUser, args=(self))
                     t1.start()
@@ -199,44 +181,16 @@ class Usuario:
                         usersGrl += f"{user}|"
                     
                     self.sockUser.send(usersGrl.encode("utf-32"))
-
-    def serverRcv(self, mensagem):
-        
-        # 1@emerson@lucas@...
-        # 1, 2, 3, 4, 5, 6, 7- > identifica se é mensagem para um usuario ou grupo
-        # ou um convite para um grupo ou pedido para entrar em um grupo ou
-        # sair de um grupo ou usuario adicionado
-        # orig - > quem está mandando
-        # dest - > quem tem q receber
-        # 7@grupo
-
-        mensagemSplitada = mensagem.split('@')
-
-        if(mensagemSplitada[0] == '2'):
-
-            content, dest = self.sendMsgToGroup(mensagem, mensagemSplitada[2])
-
-            dest.rcvAndPropMsg(content)
-            
-            return
-
-        content, dest = self.sendMsgToUser(mensagem, mensagemSplitada[2])
-        
-        dest.receiveMsgUser(content, self.getEmail())
-
-    # The main idea in this two methods is to
-    # make the process of creating new chanels more
-    # easy
+                case('12'):
+                    user = self.serv.users[message[1]]
+                    mensagem = f"{user.getName()}|{user.getEmail()}|{user.getCep()}"
+                    self.sockUser.send(mensagem.encode("utf-32"))
 
     def addUser(self, userStuff):   # esse userStuff é um objeto Usuario
 
         self.users.append(userStuff)
 
-        mensagem = "6@" + userStuff.getName() + "@" + userStuff.getEmail() + '@'
-
         self.usersChannel[userStuff.getEmail()] = list()
-        self.sockUser.send(mensagem.encode("utf-32"))
-
         return
     
     def rcvInvite(self, group):
@@ -270,7 +224,6 @@ class Usuario:
     
     def addGroup(self, groupStuff): # esse groupStuff é um objeto Grupo
 
-        self.groupsChannel[groupStuff.getName()] = list()
         self.groups.append(groupStuff)
         return
 

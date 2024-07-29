@@ -12,8 +12,9 @@ okMessage = "OK"
 
 class Server: 
     def __init__(self):
-
-        self.users = dict() # dict<email, user>
+        
+        self.usersLogin = dict() # dict<email, senha>
+        self.users = dict() # dict<name, user>
         self.groups = dict() # dict<nome, group>
 
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -22,14 +23,13 @@ class Server:
 
     def login(self, message, client, address):
 
-        if message[1] in self.users.keys():
-            if (message[2] == self.users[message[1]].getPassw()):
+        if message[1] in self.usersLogin.keys():
+            if (message[2] == self.usersLogin[message[1]]):
 
                 user = self.users[message[1]]
                 user.ipv4 = address
                 user.sockUser = client
                 
-
                 mensagem = "login Done : " + user.getName() + " : " + user.getCep() + " : "
 
                 client.send(mensagem.encode("utf-32"))
@@ -43,7 +43,8 @@ class Server:
 
     def sign_up(self, message, client, address):
         user = Usuario(message[2], message[1], message[3], message[4], address, client, self)
-        self.users[user.getEmail()] = user
+        self.users[user.getName()] = user
+        self.usersLogin[user.getEmail()] = user.getPassw()
         t = threading.Thread(target= user.start, args=())
         t.start()
 

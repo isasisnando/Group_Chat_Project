@@ -361,4 +361,26 @@ class Chat(tk.Tk):
                 self.user.sockUser.close()
                 break
 
+class PerfilScreen(tk.Tk):
+    
+    def __init__(self, user : ClientUser, persoName : str):
+        super().__init__()
+
+        self.geometry("360x300")
+        self.title("Informações pessoais")
+
+        self.frame = tk.Frame(self, background= "#95ECEC")
+        self.frame.pack(fill="both", expand=True)
+
+        tk.Label(self.frame, text="Informações pessoais").place(relwidth=1, y=24)
+
+        self.user = user
+
+        self.user.sockUser.send((f"12|{persoName}").encode("utf-32"))
+
+        resp = self.user.sockUser.recv(1024).decode("utf-32")
+
+        resp = resp.split('|')
+
+
 Start()
