@@ -110,7 +110,7 @@ class LogIn(tk.Tk):
         resp = self.sockUser.recv(1024).decode("utf-32")
         resp = resp.split(" : ")
         if(resp[0] == "login Done"):
-
+            self.destroy()
             self.user = ClientUser(resp[1], _email, _passw, resp[2], self.sockUser)
             IntialPage(self.user)
             return
@@ -180,6 +180,7 @@ class SignUp(tk.Tk):
                 SignUp()
                 return
             
+            self.destroy()
             IntialPage(self.user)
 
 
@@ -240,7 +241,7 @@ class IntialPage(tk.Tk):
     def choose_user(self):
         self.destroy()
         PerfilScreen(self.user, self.users_click.get())
-        
+
     def change_dropdown_label(self):
         self.dropdown_label.config(text = self.clicked.get())
 
