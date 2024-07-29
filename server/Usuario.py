@@ -95,6 +95,7 @@ class Usuario:
                 10 -> pede Groups
                 0|tipo|email ou nome
                 1|
+                2|groupName|userName|message
                 4|emailDoNewUser
                 5|grupo|email
                 6|grupo|email
@@ -111,21 +112,32 @@ class Usuario:
                     self.conected = ""
                     self.tipoConec = -1
                 case ('0'):
+                    try:
 
-                    mensagemGrl = ""
-                    if (int(message[1]) == 1):
-                        for msg in self.usersChannel[message[2]]:
-                            mensagemGrl += f"{msg}|"
-                    else:
-                        for msg in self.groupssChannel[message[2]]:
-                            mensagemGrl += f"{msg}|"
-                    
-                    self.sockUser.send(mensagemGrl.encode("utf-32"))
-                    
-                    self.conected = message[2]
-                    self.tipoConec = int(message[1])
+                        mensagemGrl = ""
+                        if (int(message[1]) == 1):
+                            for msg in self.usersChannel[message[2]]:
+                                mensagemGrl += f"{msg}|"
+                        else:
+                            for msg in self.groupssChannel[message[2]]:
+                                mensagemGrl += f"{msg}|"
+                        
+                        self.sockUser.send(mensagemGrl.encode("utf-32"))
+                        
+                        self.conected = message[2]
+                        self.tipoConec = int(message[1])
+                    except: 
+                        pass
                 case ('2'):
-                    self.serverRcv(message[1])
+                    print(message)
+                    try: 
+                        group = self.serv.groups[message[1]]
+                        userMessage = f"{message[2]} : {message[3]}"
+                        group.messages.append(userMessage)
+                        group.propagateMessage(userMessage)
+                    except:
+                        pass
+                    
                 case ('3'):
                     break
                 case ('4'):
@@ -151,10 +163,8 @@ class Usuario:
                     t.start()
 
                 case('7'):
-                    t = threading.Thread(target= self.serv.groups[message[1]].addUser, args=(self.users[message[2]]))
-                    t1 = threading.Thread(target= self.serv.users[message[2]].addGroup, args=(self.groups[message[1]]))
-                    t1.start()
-                    t.start()
+                    self.serv.groups[message[1]].addUser(self)
+                    self.serv.users[message[2]].addGroup(self.findGroup(message[1]))
                 
                 case('8'):
 
@@ -165,13 +175,10 @@ class Usuario:
                     newGrupo = Grupo(message[1], self.serv.users[message[2]])
 
                     self.serv.groups[message[1]] = newGrupo
+                    self.groups.append(self.serv.groups[message[1]])
                     # t = threading.Thread(target= self.serv.users[message[2]].addGroup, args=(newGrupo))
-                    # t.start()
-                    
-                    print(self.serv.groups)
-                
+                    # t.start()                
                 case('9'):
-
                     t = threading.Thread(target= self.serv.groups[message[1]].eraseUser, args=(self.serv.users[message[2]]))
                     t1 = threading.Thread(target= self.serv.users[message[2]].sairDeUmGrupo, args=(self.serv.groups[message[1]]))
                     t1.start()
@@ -260,12 +267,14 @@ class Usuario:
     
     def addGroup(self, groupStuff): # esse groupStuff é um objeto Grupo
 
-        mensagem = "7@" + groupStuff + "@"
-        
-        self.sockUser(mensagem.encode("utf-32"))
         self.groupsChannel[groupStuff.getName()] = list()
-        self.grupos.append(groupStuff)
+        self.groups.append(groupStuff)
         return
+
+    def findGroup(self, groupName):
+        for group in self.groups:
+            if group.name == groupName:
+                return group
     
     def getName(self):
         return self.name

@@ -13,7 +13,15 @@ class Grupo:
 
         self.name, self.admin = name, admin 
         self.users[admin.getName()] = admin
-    
+
+    def propagateMessage(self, message): 
+        self.admin.sockUser.send(message.encode("utf-32"))
+        for user in self.users.values():
+            if user.getName() != self.admin.getName(): # TODO: dont send 2 messages for admin
+                try:
+                    user.sockUser.send(message.encode("utf-32"))
+                except:
+                    print("ERRO")
     def rcvAndPropMsg(self, mensagem):
 
         # Aqui a mensagem será recebida e enviada para todos
@@ -29,7 +37,7 @@ class Grupo:
                 t = threading.Thread(target= self.users[user].receiveMsgGrupo, args=(mensagem, self.name))
                 t.start()
     
-    def addUser(self, user):
+    def User(self, user):
         self.users[user.getName()] = user
     
     def eraseUser(self, user):
@@ -38,6 +46,9 @@ class Grupo:
         mensagem = "2@" + user.getName() + "@saiu"
 
         self.rcvAndPropMsg(mensagem)
+    
+    def addUser(self, user):
+        self.users[user.getEmail()] = user
     
     def getName(self):
         return self.name
