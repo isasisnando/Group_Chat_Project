@@ -1,7 +1,9 @@
+import threading
 import tkinter as tk
 import tkinter.scrolledtext
 import socket 
 from ClientUser import ClientUser
+
 
 HOST = "127.0.0.1"
 PORT = 3300
@@ -226,7 +228,7 @@ class IntialPage(tk.Tk):
 
     def choose_group(self):
         self.destroy()
-        Chat(self.user, self.groups_dropdown.get())
+        Chat(self.user, self.groups_click.get())
 
     def change_dropdown_label(self):
         self.dropdown_label.config(text = self.clicked.get())
@@ -267,56 +269,80 @@ class CreateGroup(tk.Tk):
 class Chat(tk.Tk): 
     def __init__(self, user: ClientUser, chatName):
         super().__init__()
-        self.configure(bg= "lightgray")
-        self.geometry("400x650")
         self.user = user
+        self.group_name = chatName
 
-        self.chat_label = tk.Label(self, text = "Chat:", bg="lightgray")
+        self.running = True 
+        self.interface_done = False
+        
+        self.connectToGroup()
+        run_thread = threading.Thread(target=self.run_app)
+        run_thread.daemon = True
+        receive_thread = threading.Thread(target=self.receive)
+        receive_thread.daemon = True
+        run_thread.start()
+        receive_thread.start()
+        
+
+
+    def connectToGroup(self):
+        self.user.acceptInGroup(self.group_name)
+        # res = self.user.sockUser.recv(1024).encode("utf-32")
+        # message = f"{self.user.getName()}: joined the chat"
+        # self.user.sockUser.send(message.encode("utf-32"))
+        # self.input_area.delete('1.0', 'end')
+
+    def run_app(self):
+        self.frame = tk.Tk()
+        # self.geometry("400x650")
+        self.frame.configure(bg= "lightgray")
+        # self.title(f"{self.group_name} chat")
+        self.chat_label = tk.Label(self.frame, text = "Chat:", bg="lightgray")
         self.chat_label.config(font=("Arial", 12))
         self.chat_label.pack(padx=20, pady=5)
         
-        self.text_area = tkinter.scrolledtext.ScrolledText(self)
+        self.text_area = tkinter.scrolledtext.ScrolledText(self.frame)
         self.text_area.pack(padx=20, pady=5)
         self.text_area.config(state='disabled')
 
-        self.msg_label = tk.Label(self, text="Message:", bg="lightgray")
+        self.msg_label = tk.Label(self.frame, text="Message:", bg="lightgray")
         self.msg_label.config(font=("Arial", 12))
         self.msg_label.pack(padx=20, pady=5)
 
-        self.input_area = tk.Text(self, height=3)
+        self.input_area = tk.Text(self.frame, height=3)
         self.input_area.pack(padx=20, pady=5)
 
-        self.send_button = tk.Button(self, text = "Send", command=self.write)
+        self.send_button = tk.Button(self.frame, text = "Send", command=self.write)
         self.send_button.config(font=("Arial", 12))
         self.send_button.pack(padx=20, pady=5)
 
-
-        self.protocol("WM_DELETE_WINDOW", self.stop)
-        self.mainloop()
-
-
-    def connectToGroup(self, chatName):
-        # MAYBE TODO: end this
-        # acho q aqui tem q ser o pedido pra entrar, não?
-        self.user.acceptInGroup(chatName)
-        res = self.user.sockUser.recv(1024).encode("utf-32")
-
+        self.interface_done = True
+        self.frame.protocol("WM_DELETE_WINDOW", self.stop)
+        
+        self.frame.mainloop()
 
     def write(self):
-        message = f"{self.user.getName()}: {self.input_area.get('1.0', 'end')}"
+        self.user.sendMsgGroup(self.group_name, self.user.getName(), self.input_area.get('1.0', 'end'))
+        self.input_area.delete('1.0', 'end')
+    
+    def stop(self):
+        self.running = False
+        self.destroy()
+        message = f"{self.user.getName()} has left the chat"
         self.user.sockUser.send(message.encode("utf-32"))
         self.input_area.delete('1.0', 'end')
-    def stop(self):
-        self.destroy()
+        self.user.sockUser.close()
+        IntialPage(self.user)
 
     def receive(self):
-        while True:
+        while self.running:
             try:
-                message = self.user.sockUser.recv(1024)
-                self.text_area.config(state="normal")
-                self.text_area.insert('end', message)
-                self.text_area.yview('end')
-                self.text_area.config(state= "disabled")
+                if self.interface_done:
+                    message = self.user.sockUser.recv(1024)
+                    self.text_area.config(state="normal")
+                    self.text_area.insert('end', message.decode("utf-32"))
+                    self.text_area.yview('end')
+                    self.text_area.config(state= "disabled")
             except ConnectionAbortedError: 
                 break
             except:

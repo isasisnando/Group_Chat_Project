@@ -104,23 +104,23 @@ class ClientUser:
 
         self.sockUser.send(mensagem)
     
-    def sendMsgGroup(self, dest, msg):
+    def sendMsgGroup(self, dest, user,msg):
 
-        mensagem = "2|2@" + self.getName() + "@" + dest + '@' + msg + '@'
+        mensagem = f"2|{dest}|{user}|{msg}"
 
-        self.sockUser.send(mensagem)
+        self.sockUser.send(mensagem.encode("utf-32"))
     
     def sendInviteGroup(self, who, nomeGrupo): # Who its an email
 
         mensagem = "5|" + nomeGrupo + '|' + who + '|'
 
-        self.sockUser.send(mensagem)
+        self.sockUser.send(mensagem.encode("utf-32"))
     
-    def acceptInGroup(self, nomeGrupo, whoIn):
+    def acceptInGroup(self, nomeGrupo):
 
-        mensagem = "7|" + nomeGrupo + '|' + whoIn + '|'
+        mensagem = "7|" + nomeGrupo + '|' + self.getEmail() + '|'
 
-        self.sockUser.send(mensagem)
+        self.sockUser.send(mensagem.encode("utf-32"))
     
     def askInGroup(self, nomeGrupo):
 
