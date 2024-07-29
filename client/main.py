@@ -237,6 +237,10 @@ class IntialPage(tk.Tk):
         self.destroy()
         Chat(self.user, self.groups_click.get())
 
+    def choose_user(self):
+        self.destroy()
+        PerfilScreen(self.user, self.users_click.get())
+        
     def change_dropdown_label(self):
         self.dropdown_label.config(text = self.clicked.get())
 
@@ -244,9 +248,6 @@ class IntialPage(tk.Tk):
         self.destroy()
         CreateGroup(self.user)
 
-    def create_group(self):
-        self.destroy()
-        PerfilScreen(self.user, self.users_click.get())
 
 
 class CreateGroup(tk.Tk):
