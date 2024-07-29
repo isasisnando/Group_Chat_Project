@@ -205,7 +205,7 @@ class IntialPage(tk.Tk):
         tk.Label(self.frame, text=self.user.getName()).place(x= 90, y= 100)
         tk.Label(self.frame, text="Email:").place(x=50, y= 135)
         tk.Label(self.frame, text=self.user.getEmail()).place(x= 90, y= 135)
-        tk.Label(self.frame, text="CPF:").place(x= 50, y= 170)
+        tk.Label(self.frame, text="CEP:").place(x= 50, y= 170)
         tk.Label(self.frame, text=self.user.getCep()).place(x= 90, y= 170)
 
         self.users_dropdown_label = tk.Label(self.frame, text="Usuários:", background="white")
@@ -365,4 +365,26 @@ class Chat(tk.Tk):
                 self.user.sockUser.close()
                 break
 
+class PerfilScreen(tk.Tk):
+    
+    def __init__(self, user : ClientUser, persoName : str):
+        super().__init__()
+
+        self.geometry("360x300")
+        self.title("Informações pessoais")
+
+        self.frame = tk.Frame(self, background= "#95ECEC")
+        self.frame.pack(fill="both", expand=True)
+
+        tk.Label(self.frame, text="Informações pessoais").place(relwidth=1, y=24)
+
+        self.user = user
+
+        self.user.sockUser.send((f"12|{persoName}").encode("utf-32"))
+
+        resp = self.user.sockUser.recv(1024).decode("utf-32")
+
+        resp = resp.split('|')
+
+        tk.Label(self.frame, )
 Start()

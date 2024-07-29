@@ -103,7 +103,7 @@ class ClientUser:
         self.sockUser.send(mensagem)
     
     def sendMsgGroup(self, dest, user,msg):
-        mensagem = f"2|{dest}|{user}|{msg}"
+        mensagem = f"2|GROUP|{dest}|{user}|{msg}"
         self.sockUser.send(mensagem.encode("utf-32"))
     
     def sendInviteGroup(self, who, nomeGrupo): # Who its an email
