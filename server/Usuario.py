@@ -93,10 +93,10 @@ class Usuario:
                             for message in group.messages:
                                 past_messages += f"{message}|"
                         else:
-                            self.receiveMsgUser(f"você e {message[2]} estao conectados", message[2])
+                            self.receiveMsgUser(f"você e {message[2]} estao conectados\n", message[2])
                             # self.serv.users[message[2]].receiveMsgUser(f"você e {message[2]} estao conectados", self.getName())
                             for mensagem in self.usersChannel[message[2]]:
-                                past_messages += f"{message}|"
+                                past_messages += f"{mensagem}|"
 
                         if(past_messages == ""):
                             past_messages = " " 
