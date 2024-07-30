@@ -274,7 +274,7 @@ class CreateGroup(tk.Tk):
 
 
     def create_group(self):
-        message = f"8|{self.group_name_input.get()}|{self.user.getEmail()}"
+        message = f"8|{self.group_name_input.get()}|{self.user.getName()}"
         self.user.sockUser.send(message.encode("utf-32"))
         self.destroy()
         IntialPage(self.user)

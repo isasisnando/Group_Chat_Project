@@ -110,11 +110,11 @@ class ClientUser:
         self.sockUser.send(mensagem.encode("utf-32"))
     
     def acceptInGroup(self, nomeGrupo):
-        mensagem = "7|" + nomeGrupo + '|' + self.getEmail() + '|'
+        mensagem = "7|" + nomeGrupo + '|' + self.getName() + '|'
         self.sockUser.send(mensagem.encode("utf-32"))
     
     def askInGroup(self, nomeGrupo):
-        mensagem = "6|" + nomeGrupo + '|' + self.getEmail() + '|'
+        mensagem = "6|" + nomeGrupo + '|' + self.getName() + '|'
         self.sockUser.send(mensagem)
 
     def openConection(self, type, channel_or_group_name):

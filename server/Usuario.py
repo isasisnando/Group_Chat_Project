@@ -149,7 +149,7 @@ class Usuario:
                     self.serv.users[message[2]].addGroup(self.findGroup(message[1]))
                 
                 case('8'):
-
+                    print(self.serv.users)
                     if (message[1] in self.serv.groups.keys()):
                         self.sockUser.send(mensagemGroupNameUsed.encode("utf-32"))
                         continue
