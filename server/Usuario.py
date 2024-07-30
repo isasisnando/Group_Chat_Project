@@ -42,8 +42,7 @@ class Usuario:
             self.sockUser.send(message.encode("utf-32"))
     
     def start(self):
-       z = True
-       while z:
+       while True:
             try:
                 mensagem = self.sockUser.recv(1024).decode("utf-32")
             except:
