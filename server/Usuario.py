@@ -19,6 +19,9 @@ class Usuario:
     users = list()
     groups = list()
     usersChannel = dict() # dict<name, msgs>
+    notifs = list() # isso aqui vai funcionar como uma pilha de notificacoes
+    #  toda vez q entrar a gente manda essas notificacoes
+    # tem q marcar tbm os grupos q ja pediu pra entrar
 
     def __init__(self, name, email, passw, cep, ipv4, sockUser, server) -> None:
 
