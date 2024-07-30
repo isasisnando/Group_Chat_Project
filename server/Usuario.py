@@ -42,9 +42,12 @@ class Usuario:
             self.sockUser.send(message.encode("utf-32"))
     
     def start(self):
-       while True:
-           
-            mensagem = self.sockUser.recv(1024).decode("utf-32")
+       z = True
+       while z:
+            try:
+                mensagem = self.sockUser.recv(1024).decode("utf-32")
+            except:
+                pass
             
             if (mensagem == ""):
                 continue
@@ -76,7 +79,7 @@ class Usuario:
            """
 
             message = mensagem.split("|")
-            
+
             match message[0]:
                 case ('0'):
                     try:
@@ -90,17 +93,16 @@ class Usuario:
                             for message in group.messages:
                                 past_messages += f"{message}|"
                         else:
-                            
-                            # self.receiveMsgUser(f"você e {message[2]} estao conectados", message[2])
+                            self.receiveMsgUser(f"você e {message[2]} estao conectados", message[2])
                             # self.serv.users[message[2]].receiveMsgUser(f"você e {message[2]} estao conectados", self.getName())
                             for mensagem in self.usersChannel[message[2]]:
-                                past_messages += f"{mensagem}|"
+                                past_messages += f"{message}|"
 
                         if(past_messages == ""):
                             past_messages = " " 
                         self.sockUser.send(past_messages.encode("utf-32"))
                     except: 
-                        print("Connection error")
+                        print("CONNECTION ERROR")
                 case ('1'):
                     self.conected = None
                     self.tipoConec = None
