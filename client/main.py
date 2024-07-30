@@ -424,4 +424,32 @@ class PerfilScreen(tk.Tk):
         self.destroy()
         Chat(self.user, self.resp[0], "CHANNEL")
         pass
+
+class GroupPerfilScreen(tk.Tk):
+    
+    def __init__(self, user : ClientUser, groupName : str):
+        super().__init__()
+
+        self.geometry("360x300")
+        self.title("Informações pessoais")
+
+        self.frame = tk.Frame(self, background= "#95ECEC")
+        self.frame.pack(fill="both", expand=True)
+
+        tk.Label(self.frame, text="Informações pessoais").place(relwidth=1, y=24)
+
+        self.user = user
+
+        self.user.sockUser.send((f"14|{groupName}").encode("utf-32"))
+
+        self.resp = self.user.sockUser.recv(1024).decode("utf-32")
+
+        self.resp = self.resp.split('|')
+
+        # Joga pra mim essa tela aqui ao clicar no fera
+        tk.Label(self.frame, text="Nome:", background="#4EABB0",foreground="#006666", font=("Arial", 14)).place(y=140, x=24)
+        tk.Label(self.frame, text=self.resp[0], background="#4EABB0",foreground="#006666", font=("Arial", 14)).place(y=140, x=95)
+        tk.Button(self.frame, text="Pedir pra entrar", bg="red", relief="raised", height=1, width=10).place(y=250, x=75)
+        tk.Button(self.frame,  text="Abrir o chat", bg="red", relief="raised", height=1, width=10).place(y=250, x=200)
+        
 Start()

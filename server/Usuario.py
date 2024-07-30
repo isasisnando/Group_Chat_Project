@@ -188,11 +188,16 @@ class Usuario:
                     mensagem = f"{user.getName()}|{user.getEmail()}|{user.getCep()}"
                     self.sockUser.send(mensagem.encode("utf-32"))
                 case('13'):
+                    
+                    notif = "|"
 
-                    # Acho q aqui podia ser um for
-                    # e lá no cliente a gente vai pegando com um for tbm
-                    # ou pega tudo e processa devagarinho la no cliente?
-                    pass
+                    for noti in self.notifs:
+                        notif += f"{noti}|"
+                    
+                    self.sockUser.send(notif.encode("utf-32"))
+                case('14'):
+                    group = self.serv.groups[message[1]]
+                    self.sockUser.send(f"{group.getName()}|".encode("utf-32"))
 
     def addUser(self, userStuff):   # esse userStuff é um objeto Usuario
 
