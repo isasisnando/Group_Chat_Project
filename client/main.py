@@ -64,13 +64,21 @@ class Start(tk.Tk):
 
         tk.Label(self.frame, text="Bem vindo ao Chat Room").place(relwidth=1, y=12)
 
-        self.signUp = tk.Button(self.frame, command=SignUp, text="Cadastrar", bg="red", relief="raised", height=3, width=10)
+        self.signUp = tk.Button(self.frame, command=self.open_signup, text="Cadastrar", bg="red", relief="raised", height=3, width=10)
         self.signUp.place(x=155, y=110)
 
-        self.logs = tk.Button(self.frame, command=LogIn, text="Entrar", bg="red", relief="raised", height=3, width=10)
+        self.logs = tk.Button(self.frame, command=self.open_login, text="Entrar", bg="red", relief="raised", height=3, width=10)
         self.logs.place(x=155, y=180)
         
         self.mainloop()
+
+    def open_login(self):
+        LogIn()
+        self.destroy()
+    def open_signup(self):
+        SignUp()
+        self.destroy()
+
 
 class LogIn(tk.Tk):
     def __init__(self):
