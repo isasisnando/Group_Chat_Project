@@ -283,7 +283,7 @@ class Chat(tk.Tk):
     def __init__(self, user: ClientUser, chatName, tipoChat):
         super().__init__()
         self.user = user
-        self.name = chatName
+        self.destName = chatName
         self.tipoChat = tipoChat
         self.running = True 
         self.interface_done = False
@@ -296,7 +296,7 @@ class Chat(tk.Tk):
         receive_thread.start()
     
     def connectToUser(self):
-        messages = self.user.openConection(CONNECTION_TYPE["CHANNEL"], self.name)
+        messages = self.user.openConection(CONNECTION_TYPE["CHANNEL"], self.destName)
         for message in messages: 
             self.text_area.config(state="normal")
             self.text_area.insert('end', message)
@@ -304,8 +304,8 @@ class Chat(tk.Tk):
             self.text_area.config(state= "disabled")
 
     def connectToGroup(self):
-        self.user.acceptInGroup(self.name)
-        messages = self.user.openConection(CONNECTION_TYPE["GROUP"], self.name)
+        self.user.acceptInGroup(self.destName)
+        messages = self.user.openConection(CONNECTION_TYPE["GROUP"], self.destName)
         for message in messages: 
             self.text_area.config(state="normal")
             self.text_area.insert('end', message)
@@ -318,7 +318,7 @@ class Chat(tk.Tk):
         # self.geometry("400x650")
         self.frame.configure(bg= "cyan")
         # self.title(f"{self.group_name} chat")
-        self.chat_label = tk.Label(self.frame, text = f"{self.name} chat:", bg="lightgray")
+        self.chat_label = tk.Label(self.frame, text = f"{self.destName} chat:", bg="lightgray")
         self.chat_label.config(font=("Arial", 12))
         self.chat_label.pack(padx=20, pady=5)
         
@@ -348,7 +348,11 @@ class Chat(tk.Tk):
         self.frame.mainloop()
 
     def write(self):
-        self.user.sendMsgGroup(self.name, self.user.getName(), self.input_area.get('1.0', 'end'))
+        if (self.tipoChat == CONNECTION_TYPE["GROUP"]):
+            self.user.sendMsgGroup(self.destName, self.user.getName(), self.input_area.get('1.0', 'end'))
+        elif (self.tipoChat == CONNECTION_TYPE["CHANNEL"]): 
+            self.user.sendMsgUser(self.destName, self.user.getName(), self.input_area.get('1.0', 'end'))
+    
         self.input_area.delete('1.0', 'end')
     
     def stop(self):

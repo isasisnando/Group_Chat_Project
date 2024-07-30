@@ -25,7 +25,7 @@ class Usuario:
         self.name, self.email, self.passw, self.cep, self.ipv4 = name, email, passw, cep, ipv4
         self.serv = server
 
-        self.conectedGroup = None
+        self.conected = None
         self.tipoConec = CONNECTION_TYPE["NONE"]
         self.sockUser = sockUser 
     
@@ -52,7 +52,7 @@ class Usuario:
             """
                 0 -> open connection
                 1 -> close
-                2 -> message for group
+                2 -> message for group/channel
                 3 -> logout
                 4 -> quer adicionar um novo usuario
                 5 -> manda convite
@@ -76,7 +76,7 @@ class Usuario:
            """
 
             message = mensagem.split("|")
-            print(message)
+            
             match message[0]:
                 case ('0'):
                     try:
@@ -91,20 +91,19 @@ class Usuario:
                                 past_messages += f"{message}|"
                         else:
                             
-                            self.receiveMsgUser(f"você e {message[2]} estao conectados", message[2])
-                            self.serv.users[message[2]].receiveMsgUser(f"você e {message[2]} estao conectados", self.getName())
+                            # self.receiveMsgUser(f"você e {message[2]} estao conectados", message[2])
+                            # self.serv.users[message[2]].receiveMsgUser(f"você e {message[2]} estao conectados", self.getName())
                             for mensagem in self.usersChannel[message[2]]:
-                                past_messages += f"{message}|"
+                                past_messages += f"{mensagem}|"
 
-                        print(past_messages)
                         if(past_messages == ""):
                             past_messages = " " 
                         self.sockUser.send(past_messages.encode("utf-32"))
                     except: 
-                        print("ERRO1")
+                        print("Connection error")
                 case ('1'):
-                    self.conectedGroup = None
-                    self.tipoConec = -1
+                    self.conected = None
+                    self.tipoConec = None
                 case ('2'):
                     try: 
                         if(message[1] == CONNECTION_TYPE["GROUP"]):
@@ -117,7 +116,7 @@ class Usuario:
                             self.receiveMsgUser(userMessage, message[2])
                             self.serv.users[message[2]].receiveMsgUser(userMessage, self.getName())
                     except:
-                        print("ERRO2")
+                        print("Sending message error")
                     
                 case ('3'):
                     break
@@ -144,12 +143,11 @@ class Usuario:
 
                 case('7'):
                     self.tipoConec = CONNECTION_TYPE["GROUP"]
-                    self.conectedGroup = message[1]
+                    self.conected = message[1]
                     self.serv.groups[message[1]].addUser(self)
                     self.serv.users[message[2]].addGroup(self.findGroup(message[1]))
                 
                 case('8'):
-                    print(self.serv.users)
                     if (message[1] in self.serv.groups.keys()):
                         self.sockUser.send(mensagemGroupNameUsed.encode("utf-32"))
                         continue
