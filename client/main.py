@@ -73,11 +73,11 @@ class Start(tk.Tk):
         self.mainloop()
 
     def open_login(self):
+        self.destroy()
         LogIn()
-        self.destroy()
     def open_signup(self):
-        SignUp()
         self.destroy()
+        SignUp()
 
 
 class LogIn(tk.Tk):
