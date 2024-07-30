@@ -31,6 +31,8 @@ class Usuario:
     
     def receiveMsgUser(self, message, whoSent):
 
+        self.usersChannel[whoSent].append(message)
+
         if (self.tipoConec == CONNECTION_TYPE["CHANNEL"] and self.conected == whoSent):
             self.sockUser.send(message.encode("utf-32"))
     
@@ -88,7 +90,9 @@ class Usuario:
                             for message in group.messages:
                                 past_messages += f"{message}|"
                         else:
-                            print(message)
+                            
+                            self.receiveMsgUser(f"você e {message[2]} estao conectados", message[2])
+                            self.serv.users[message[2]].receiveMsgUser(f"você e {message[2]} estao conectados", self.getName())
                             for mensagem in self.usersChannel[message[2]]:
                                 past_messages += f"{message}|"
 
