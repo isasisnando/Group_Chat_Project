@@ -17,6 +17,7 @@ CONNECTION_TYPE = {
 class Usuario:
 
     users = list()
+    groupsAsked = set()
     groups = list()
     usersChannel = dict() # dict<name, msgs>
     notifs = list() # isso aqui vai funcionar como uma pilha de notificacoes
@@ -68,6 +69,7 @@ class Usuario:
                 11 -> pede Users
                 10 -> pede Groups
                 12 -> Quero infos desse usuario
+                13 -> take notifications
                 0|tipo|email ou nome
                 1|
                 2|groupName|userName|message
@@ -142,12 +144,14 @@ class Usuario:
                     
                 case('6'):
 
+                    self.groupsAsked.add(message[1])
                     t = threading.Thread(target= (self.serv.groups[message[1]].getAdmin()).pedidoParaEntrar, args=(message[2]))
                     t.start()
 
                 case('7'):
                     self.tipoConec = CONNECTION_TYPE["GROUP"]
                     self.conected = message[1]
+                    self.serv.users[message[2]].groupsAsked.remove(message[1])
                     self.serv.groups[message[1]].addUser(self)
                     self.serv.users[message[2]].addGroup(self.findGroup(message[1]))
                 
@@ -183,6 +187,12 @@ class Usuario:
                     user = self.serv.users[message[1]]
                     mensagem = f"{user.getName()}|{user.getEmail()}|{user.getCep()}"
                     self.sockUser.send(mensagem.encode("utf-32"))
+                case('13'):
+
+                    # Acho q aqui podia ser um for
+                    # e lá no cliente a gente vai pegando com um for tbm
+                    # ou pega tudo e processa devagarinho la no cliente?
+                    pass
 
     def addUser(self, userStuff):   # esse userStuff é um objeto Usuario
 
@@ -197,7 +207,7 @@ class Usuario:
         mensagem = "3@"
         mensagem += group + '@'
 
-        self.sockUser.send(mensagem.encode("utf-32"))
+        self.notifs.append(mensagem)
     
     def pedidoParaEntrar(self, whoWantsIn): # A gente passa ao admin quem pediu pra entrar
         
@@ -205,18 +215,16 @@ class Usuario:
 
         message += whoWantsIn + '@'
 
-        self.sockUser.send(message.encode("utf-32"))
+        self.notifs.append(message)
     
     def sairDeUmGrupo(self, grupo):
 
-        self.grupos.pop(grupo)
+        self.grupos.remove(grupo)
 
         # se a gente tivesse mais grupos usar um dict seria melhor
         # para a complexidade
 
-        mensagem = mensagemOutGrupo + grupo.getName() + '@'
-
-        self.sockUser.send(mensagem.encode("utf-32"))
+        grupo.propagateMessage(f"{self.name} saiu.")
 
     
     def addGroup(self, groupStuff): # esse groupStuff é um objeto Grupo

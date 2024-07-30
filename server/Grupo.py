@@ -25,10 +25,6 @@ class Grupo:
     
     def eraseUser(self, user):
         del self.users[user.getName()]
-
-        mensagem = "2@" + user.getName() + "@saiu"
-
-        self.propagateMessage(mensagem)
     
     def addUser(self, user):
         self.users[user.getEmail()] = user
