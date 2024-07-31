@@ -1,7 +1,9 @@
 import threading
 import tkinter as tk
 import tkinter.scrolledtext
+import tkinter.filedialog
 import socket 
+import os
 from ClientUser import ClientUser
 
 
@@ -302,24 +304,6 @@ class Chat(tk.Tk):
         receive_thread.daemon = True
         run_thread.start()
         receive_thread.start()
-    
-    def connectToUser(self):
-        messages = self.user.openConection(CONNECTION_TYPE["CHANNEL"], self.destName)
-        for message in messages: 
-            self.text_area.config(state="normal")
-            self.text_area.insert('end', message)
-            self.text_area.yview('end')
-            self.text_area.config(state= "disabled")
-
-    def connectToGroup(self):
-        self.user.acceptInGroup(self.destName)
-        messages = self.user.openConection(CONNECTION_TYPE["GROUP"], self.destName)
-        for message in messages: 
-            self.text_area.config(state="normal")
-            self.text_area.insert('end', message)
-            self.text_area.yview('end')
-            self.text_area.config(state= "disabled")
-
 
     def run_app(self):
         self.frame = tk.Tk()
@@ -341,6 +325,11 @@ class Chat(tk.Tk):
         self.input_area = tk.Text(self.frame, height=3, bg=PRIMARY_COLOR)
         self.input_area.pack(padx=20, pady=5)
 
+        self.file_transfer_button = tk.Button(self.frame, text= "Upload", command=self.upload)
+        self.file_transfer_button.config(font=("Arial", 12))
+        self.file_transfer_button.pack(padx=20, pady=5)
+    
+
         self.send_button = tk.Button(self.frame, text = "Send", command=self.write)
         self.send_button.config(font=("Arial", 12))
         self.send_button.pack(padx=20, pady=5)
@@ -355,6 +344,24 @@ class Chat(tk.Tk):
         
         self.frame.mainloop()
 
+    def connectToUser(self):
+        messages = self.user.openConection(CONNECTION_TYPE["CHANNEL"], self.destName)
+        for message in messages: 
+            self.text_area.config(state="normal")
+            self.text_area.insert('end', message)
+            self.text_area.yview('end')
+            self.text_area.config(state= "disabled")
+
+    def connectToGroup(self):
+        self.user.acceptInGroup(self.destName)
+        messages = self.user.openConection(CONNECTION_TYPE["GROUP"], self.destName)
+        for message in messages: 
+            self.text_area.config(state="normal")
+            self.text_area.insert('end', message)
+            self.text_area.yview('end')
+            self.text_area.config(state= "disabled")
+
+
     def write(self):
         if (self.tipoChat == CONNECTION_TYPE["GROUP"]):
             self.user.sendMsgGroup(self.destName, self.user.getName(), self.input_area.get('1.0', 'end'))
@@ -362,6 +369,9 @@ class Chat(tk.Tk):
             self.user.sendMsgUser(self.destName, self.user.getName(), self.input_area.get('1.0', 'end'))
     
         self.input_area.delete('1.0', 'end')
+
+    def upload(self):
+        pass
     
     def stop(self):
         self.running = False
