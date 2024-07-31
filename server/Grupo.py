@@ -17,8 +17,8 @@ class Grupo:
 
     def propagateMessage(self, mensagem):
         for user in self.users.keys():  
-            t = threading.Thread(target= self.users[user].receiveMsgGrupo, args=(mensagem, self.name))
-            t.start()
+            self.users[user].receiveMsgGrupo(mensagem, self.name)
+
     
     def User(self, user):
         self.users[user.getName()] = user
