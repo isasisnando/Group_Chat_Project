@@ -373,8 +373,6 @@ class Chat(tk.Tk):
     def upload(self):
         filename = tkinter.filedialog.askopenfilename()
         if filename:
-            print(filename)
-            print(os.path.getsize(filename))
             self.user.sendUploadGroup(self.destName, self.user.getName(), filename)
 
     def stop(self):
@@ -391,10 +389,28 @@ class Chat(tk.Tk):
             try:
                 if self.interface_done:
                     message = self.user.sockUser.recv(1024)
-                    self.text_area.config(state="normal")
-                    self.text_area.insert('end', message.decode("utf-32"))
-                    self.text_area.yview('end')
-                    self.text_area.config(state= "disabled")
+                    message = message.decode("utf-32")
+
+                    if message[0] =="*":
+                        message = message.split(":")
+                        filename = "./rec/" + message[1]
+                        filesize = int(message[2])
+                        print(message, filename, filesize)
+                        with open(filename, "wb") as file:
+                                c = 0
+                                while c < filesize:
+                                    data = self.user.sockUser.recv(1024)
+                                    # print(data)
+                                    if not (data):
+                                        break
+                                    file.write(data)
+                                    c += len(data)
+                                    print(c, filesize)
+                    else:
+                        self.text_area.config(state="normal")
+                        self.text_area.insert('end', message)
+                        self.text_area.yview('end')
+                        self.text_area.config(state= "disabled")
             except ConnectionAbortedError: 
                 break
             except:

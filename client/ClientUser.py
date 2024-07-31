@@ -118,7 +118,6 @@ class ClientUser:
             c = 0 
             while c <= file_size:
                 data = file.read(1024)
-                print(data)
                 if not (data):
                     break
                 self.sockUser.sendall(data)
