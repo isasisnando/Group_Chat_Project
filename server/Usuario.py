@@ -59,6 +59,7 @@ class Usuario:
                 0 -> open connection
                 1 -> close
                 2 -> message for group/channel
+                2U -> message as file/video/audio for group/channel
                 3 -> logout
                 4 -> quer adicionar um novo usuario
                 5 -> manda convite
@@ -73,6 +74,7 @@ class Usuario:
                 0|tipo|email ou nome
                 1|
                 2|groupName|userName|message
+                2U|tipo|destUser|userName|filename|file_size
                 4|nome
                 5|grupo|email
                 6|grupo|email
@@ -123,7 +125,20 @@ class Usuario:
                             self.serv.users[message[2]].receiveMsgUser(userMessage, self.getName())
                     except:
                         print("Sending message error")
-                    
+                case ('2U'):
+                    print(message)
+                    filename= message[4].split("/")[-1]
+                    filesize = int(message[5])
+                    with open("./rec/" + filename, "wb") as file:
+                        c = 0
+                        while c <= filesize:
+                            data = self.sockUser.recv(1024)
+                            print(data)
+                            if not (data):
+                                break
+                            file.write(data)
+                            c += len(data)
+
                 case ('3'):
                     break
                 case ('4'):
@@ -151,8 +166,7 @@ class Usuario:
                 case('7'):
                     self.tipoConec = CONNECTION_TYPE["GROUP"]
                     self.conected = message[1]
-                    #na boa Emershow, que me fuder? me beija (TESTA ESSA POHA ANTES CARALHO)
-                    self.serv.users[message[2]].groupsAsked.remove(message[1])
+                    # self.serv.users[message[2]].groupsAsked.remove(message[1])
                     self.serv.groups[message[1]].addUser(self)
                     self.serv.users[message[2]].addGroup(self.findGroup(message[1]))
                 

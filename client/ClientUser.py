@@ -1,4 +1,5 @@
 import socket
+import os
 
 PORT = 3300
 CONNECTION_TYPE = {
@@ -104,6 +105,25 @@ class ClientUser:
     def sendMsgGroup(self, dest, user,msg):
         mensagem = f"2|GROUP|{dest}|{user}|{msg}"
         self.sockUser.send(mensagem.encode("utf-32"))
+
+    def sendUploadUser(self, dest, user, filename):
+        return #:)
+    
+    def sendUploadGroup(self, dest, user,filename):
+        file_size = os.path.getsize(filename)
+        mensagem = f"2U|GROUP|{dest}|{user}|{filename}|{file_size}"
+        self.sockUser.send(mensagem.encode("utf-32"))
+        
+        with open(filename, "rb") as file:
+            c = 0 
+            while c <= file_size:
+                data = file.read(1024)
+                print(data)
+                if not (data):
+                    break
+                self.sockUser.sendall(data)
+                c += len(data)
+
     
     def sendInviteGroup(self, who, nomeGrupo): # Who its an email
         mensagem = "5|" + nomeGrupo + '|' + who + '|'
@@ -132,4 +152,6 @@ class ClientUser:
     def takeUsers(self):
         self.sockUser.send(f"11|".encode("utf-32"))
         return (list(self.sockUser.recv(1024).decode("utf-32").split('|')))   
+
+
     

@@ -4,6 +4,7 @@ import tkinter.scrolledtext
 import tkinter.filedialog
 import socket 
 import os
+from pathlib import Path
 from ClientUser import ClientUser
 
 
@@ -298,14 +299,6 @@ class Chat(tk.Tk):
         self.running = True 
         self.interface_done = False
 
-        run_thread = threading.Thread(target=self.run_app)
-        run_thread.daemon = True
-        receive_thread = threading.Thread(target=self.receive)
-        receive_thread.daemon = True
-        run_thread.start()
-        receive_thread.start()
-
-    def run_app(self):
         self.frame = tk.Tk()
         # self.geometry("400x650")
         self.frame.configure(bg= "cyan")
@@ -325,6 +318,7 @@ class Chat(tk.Tk):
         self.input_area = tk.Text(self.frame, height=3, bg=PRIMARY_COLOR)
         self.input_area.pack(padx=20, pady=5)
 
+
         self.file_transfer_button = tk.Button(self.frame, text= "Upload", command=self.upload)
         self.file_transfer_button.config(font=("Arial", 12))
         self.file_transfer_button.pack(padx=20, pady=5)
@@ -342,6 +336,12 @@ class Chat(tk.Tk):
         else:
             self.connectToUser()
         
+
+        
+        receive_thread = threading.Thread(target=self.receive)
+        receive_thread.daemon = True
+        receive_thread.start()
+
         self.frame.mainloop()
 
     def connectToUser(self):
@@ -371,8 +371,12 @@ class Chat(tk.Tk):
         self.input_area.delete('1.0', 'end')
 
     def upload(self):
-        pass
-    
+        filename = tkinter.filedialog.askopenfilename()
+        if filename:
+            print(filename)
+            print(os.path.getsize(filename))
+            self.user.sendUploadGroup(self.destName, self.user.getName(), filename)
+
     def stop(self):
         self.running = False
         self.frame.destroy()
