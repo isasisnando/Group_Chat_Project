@@ -471,7 +471,7 @@ class GroupPerfilScreen(tk.Tk):
         if(self.resp[1] != self.user.getName()):
             tk.Button(self.frame, text="Pedir pra entrar", bg="red", command=self.askInGroup, relief="raised", height=1, width=10).place(y=250, x=75)
         else:
-            tk.Button(self.frame, text="Enviar convite", bg="red", relief="raised", height=1, width=10).place(y=250, x=75)
+            tk.Button(self.frame, text="Enviar convite", command=self.abreInviteScreen, bg="red", relief="raised", height=1, width=10).place(y=250, x=75)
         tk.Button(self.frame,  text="Abrir o chat", bg="red", command=self.abreGroup, relief="raised", height=1, width=10).place(y=250, x=200)
 
     def abreGroup(self):
@@ -492,5 +492,48 @@ class GroupPerfilScreen(tk.Tk):
 
         nomeGrupo = self.resp[0]
         self.user.sockUser.send(f"6|{nomeGrupo}|{self.user.getName()}".encode("utf-32"))
+    
+    def abreInviteScreen(self):
+        self.destroy()
+        ConvidarUsuarios(self.user, self.groupName)
 
+class ConvidarUsuarios(tk.Tk):
+
+    def __init__(self, user : ClientUser, nameGrupo : str):
+
+        super().__init__()
+
+        self.user, self.nomeGrupo = user, nameGrupo
+
+        self.geometry("360x300")
+        self.title("Convidar usuarios")
+        self.frame = tk.Frame(self, background= "#95ECEC")
+        self.frame.pack(fill="both", expand=True)
+
+        tk.Label(self.frame, text="Convidar Usuarios").place(relwidth=1, y=24)
+
+        self.users_dropdown_label = tk.Label(self.frame, text="Usuários:", background="white")
+        self.users_dropdown_label.place(x=94, y=90)
+
+
+        self.users_click = tk.StringVar(self.frame)
+        self.users_click.set("Escolher")
+        self.users_dropdown = tk.OptionMenu(self.frame, self.users_click, None,*self.user.takeUsers())
+        self.users_dropdown.place(x=154, y=90)
+       
+        self.users_button_dropdown = tk.Button(self.frame, background="#FFFFFF",text="Convidar usuário", command=self.sendInvite)
+        self.users_button_dropdown.place(x=114, y=125)
+
+        tk.Button(self.frame,  text="Voltar", bg="red", command=self.voltar, relief="raised", height=1, width=10).place(y=260, x=20)
+    
+    def sendInvite(self):
+
+        who = self.users_click.get()
+        mensagem = f"5|{self.nomeGrupo}|{who}"
+
+        self.user.sockUser.send(mensagem.encode("utf-32"))
+    
+    def voltar(self):
+        self.destroy()
+        IntialPage(self.user)
 Start()

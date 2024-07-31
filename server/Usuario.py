@@ -73,6 +73,7 @@ class Usuario:
                 13 -> take notifications
                 14 -> take Group Name
                 15 -> take if im in this group
+                16 -> refuses any request to a group
                 0|tipo|email ou nome
                 1|
                 2|groupName|userName|message
@@ -85,6 +86,7 @@ class Usuario:
                 12|userName
                 14|groupName
                 15|groupName
+                16|groupName|name
            """
 
             message = mensagem.split("|")
@@ -139,10 +141,6 @@ class Usuario:
                     self.serv.users[message[1]].addUser(self.serv.users[self.name])
 
                 case('5'):
-                    if (self.name != self.serv.groups[message[1]].getAdmin()):
-                        self.sockUser.send(mensagemUnauthorized.encode("utf-32"))
-                        continue
-
                     # O usuario devera receber o grupo que foi convidado
                     t = threading.Thread(target= self.serv.users[message[2]].rcvInvite, args=(message[1]))
                     t.start()
@@ -213,7 +211,9 @@ class Usuario:
                         continue
 
                     self.sockUser.send("esta no grupo".encode("utf-32"))
-                    pass
+                case('16'):
+
+                    self.serv.users[message[2]].groupsAsked.remove(message[1])
 
     def addUser(self, userStuff):   # esse userStuff é um objeto Usuario
 
@@ -226,9 +226,9 @@ class Usuario:
         # 3 implica um convite
 
         mensagem = f"3@{group}@"
-
+        self.groupsAsked.add(group)
         self.notifs.append(mensagem)
-    
+
     def pedidoParaEntrar(self, whoWantsIn, wichGroup): # A gente passa ao admin quem pediu pra entrar
         
         message = f"4@{whoWantsIn}@{wichGroup}"
