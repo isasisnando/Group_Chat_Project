@@ -3,14 +3,13 @@ import threading
 
 class Grupo:
 
-    users = dict() # dict<Nick, Usuario>
-    messages = list()
-
     # pessoal, acho q aqui a gente poderia ter um set com o momento que ela entrou
     # pra definir quem seria o novo admin?
 
     def __init__(self, name, admin):
 
+        self.users = dict() # dict<Nick, Usuario>
+        self.messages = list()
         self.name, self.admin = name, admin 
         self.users[admin.getName()] = admin
 

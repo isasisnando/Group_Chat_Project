@@ -242,11 +242,26 @@ class IntialPage(tk.Tk):
         self.groups_button_dropdown = tk.Button(self.frame, background="#FFFFFF",text="Escolher grupo", command=self.choose_group)
         self.groups_button_dropdown.place(x=230, y=200)
 
+        self.t_groups_dropdown_label = tk.Label(self.frame, text="Grupos (teste):", background="white")
+        self.t_groups_dropdown_label.place(x=170, y=240)
+
+        self.t_groups_click = tk.StringVar(self.frame)
+        self.t_groups_click.set("Escolher")
+        self.t_groups_dropdown = tk.OptionMenu(self.frame, self.t_groups_click , None, *self.user.takeGroups())
+        self.t_groups_dropdown.place(x=230, y=240)
+
+        self.t_groups_button_dropdown = tk.Button(self.frame, background="#FFFFFF",text="Escolher grupo", command=self.choose_t_group)
+        self.t_groups_button_dropdown.place(x=230, y=280)
+
         self.frame.mainloop()
 
     def choose_group(self):
         self.destroy()
         Chat(self.user, self.groups_click.get(), "GROUP")
+    
+    def choose_t_group(self):
+        self.destroy()
+        GroupPerfilScreen(self.user, self.t_groups_click.get())
 
     def choose_user(self):
         self.destroy()
@@ -310,6 +325,9 @@ class Chat(tk.Tk):
             self.text_area.insert('end', message)
             self.text_area.yview('end')
             self.text_area.config(state= "disabled")
+
+    # o erro "Tcl_AsyncDelete: async handler deleted by the wrong thread"
+    # continua aparecendo, n sei pq e nem como resolver, talvez diminuir as threads?
 
     def connectToGroup(self):
         self.user.acceptInGroup(self.destName)
@@ -439,17 +457,40 @@ class GroupPerfilScreen(tk.Tk):
         tk.Label(self.frame, text="Informações pessoais").place(relwidth=1, y=24)
 
         self.user = user
-
+        self.groupName = groupName
         self.user.sockUser.send((f"14|{groupName}").encode("utf-32"))
 
         self.resp = self.user.sockUser.recv(1024).decode("utf-32")
 
         self.resp = self.resp.split('|')
 
-        # Joga pra mim essa tela aqui ao clicar no fera
-        tk.Label(self.frame, text="Nome:", background="#4EABB0",foreground="#006666", font=("Arial", 14)).place(y=140, x=24)
-        tk.Label(self.frame, text=self.resp[0], background="#4EABB0",foreground="#006666", font=("Arial", 14)).place(y=140, x=95)
-        tk.Button(self.frame, text="Pedir pra entrar", bg="red", relief="raised", height=1, width=10).place(y=250, x=75)
-        tk.Button(self.frame,  text="Abrir o chat", bg="red", relief="raised", height=1, width=10).place(y=250, x=200)
-        
+        tk.Label(self.frame, text="Nome:", background="#4EABB0",foreground="#006666", font=("Arial", 14)).place(y=100, x=24)
+        tk.Label(self.frame, text=self.resp[0], background="#4EABB0",foreground="#006666", font=("Arial", 14)).place(y=100, x=95)
+        tk.Label(self.frame, text="Admin:", background="#4EABB0",foreground="#006666", font=("Arial", 14)).place(y=150, x=24)
+        tk.Label(self.frame, text=self.resp[1], background="#4EABB0",foreground="#006666", font=("Arial", 14)).place(y=150, x=95)
+        if(self.resp[1] != self.user.getName()):
+            tk.Button(self.frame, text="Pedir pra entrar", bg="red", command=self.askInGroup, relief="raised", height=1, width=10).place(y=250, x=75)
+        else:
+            tk.Button(self.frame, text="Enviar convite", bg="red", relief="raised", height=1, width=10).place(y=250, x=75)
+        tk.Button(self.frame,  text="Abrir o chat", bg="red", command=self.abreGroup, relief="raised", height=1, width=10).place(y=250, x=200)
+
+    def abreGroup(self):
+
+        nomeGrupo = self.resp[0]
+        self.user.sockUser.send(f"15|{nomeGrupo}".encode("utf-32"))
+        resp = self.user.sockUser.recv(1024).decode("utf-32")
+        if(resp == "voce nao esta no grupo"):
+
+            self.destroy()
+            GroupPerfilScreen(self.user, self.groupName)
+            ErrorMsg(resp)
+            return
+
+        Chat(self.user, self.resp[0], CONNECTION_TYPE["GROUP"]) 
+    
+    def askInGroup(self):
+
+        nomeGrupo = self.resp[0]
+        self.user.sockUser.send(f"6|{nomeGrupo}|{self.user.getName()}".encode("utf-32"))
+
 Start()
