@@ -24,14 +24,14 @@ class Grupo:
     
     def eraseUser(self, user):
         del self.users[user.getName()]
+        print(self.users.keys())
     
     def addUser(self, user):
-        self.users[user.getEmail()] = user
+        self.users[user.getName()] = user
+        print(self.users.keys())
     
     def getName(self):
         return self.name
     
     def getAdmin(self):
         return self.admin
-    
-    

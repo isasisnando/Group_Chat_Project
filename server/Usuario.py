@@ -173,10 +173,14 @@ class Usuario:
                     # t = threading.Thread(target= self.serv.users[message[2]].addGroup, args=(newGrupo))
                     # t.start()                
                 case('9'):
-                    t = threading.Thread(target= self.serv.groups[message[1]].eraseUser, args=(self.serv.users[message[2]]))
-                    t1 = threading.Thread(target= self.serv.users[message[2]].sairDeUmGrupo, args=(self.serv.groups[message[1]]))
-                    t1.start()
-                    t.start()
+
+                    if (message[1] not in self.serv.users[message[2]].groups):
+                        self.serv.users[message[2]].sockUser.send(f"{message[2]} nao esta no grupo".encode("utf-32"))
+                        continue
+
+                    self.serv.groups[message[1]].eraseUser(self.serv.users[message[2]])
+                    self.serv.users[message[2]].sairDeUmGrupo(self.serv.groups[message[1]])
+                    self.serv.users[message[2]].sockUser.send("ok".encode("utf-32"))
                 case('10'):
                     groupsGrl = ""
                     for grupo in self.serv.groups.keys():
@@ -237,17 +241,16 @@ class Usuario:
     
     def sairDeUmGrupo(self, grupo):
 
-        self.grupos.remove(grupo)
-
+        self.groups.remove(grupo)
+        print(self.groups)
         # se a gente tivesse mais grupos usar um dict seria melhor
         # para a complexidade
 
         grupo.propagateMessage(f"{self.name} saiu.")
 
-    
     def addGroup(self, groupStuff): # esse groupStuff é um objeto Grupo
-
         self.groups.append(groupStuff)
+        print(self.groups)
         return
 
     def findGroup(self, groupName):

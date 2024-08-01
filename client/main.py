@@ -326,9 +326,6 @@ class Chat(tk.Tk):
             self.text_area.yview('end')
             self.text_area.config(state= "disabled")
 
-    # o erro "Tcl_AsyncDelete: async handler deleted by the wrong thread"
-    # continua aparecendo, n sei pq e nem como resolver, talvez diminuir as threads?
-
     def connectToGroup(self):
         self.user.acceptInGroup(self.destName)
         messages = self.user.openConection(CONNECTION_TYPE["GROUP"], self.destName)
@@ -362,7 +359,6 @@ class Chat(tk.Tk):
         self.send_button = tk.Button(self.frame, text = "Send", command=self.write)
         self.send_button.config(font=("Arial", 12))
         self.send_button.pack(padx=20, pady=5)
-
         self.interface_done = True
         self.frame.protocol("WM_DELETE_WINDOW", self.stop)
         
@@ -372,6 +368,7 @@ class Chat(tk.Tk):
             self.connectToUser()
         
         self.frame.mainloop()
+    
 
     def write(self):
         if (self.tipoChat == CONNECTION_TYPE["GROUP"]):
@@ -469,6 +466,7 @@ class GroupPerfilScreen(tk.Tk):
         tk.Label(self.frame, text="Admin:", background="#4EABB0",foreground="#006666", font=("Arial", 14)).place(y=150, x=24)
         tk.Label(self.frame, text=self.resp[1], background="#4EABB0",foreground="#006666", font=("Arial", 14)).place(y=150, x=95)
         if(self.resp[1] != self.user.getName()):
+            tk.Button(self.frame,  text="Sair do grupo", command=self.outGroup, bg="red", relief="raised", height=1, width=10).place(y=50, x=260)
             tk.Button(self.frame, text="Pedir pra entrar", bg="red", command=self.askInGroup, relief="raised", height=1, width=10).place(y=250, x=75)
         else:
             tk.Button(self.frame, text="Enviar convite", command=self.abreInviteScreen, bg="red", relief="raised", height=1, width=10).place(y=250, x=75)
@@ -488,6 +486,17 @@ class GroupPerfilScreen(tk.Tk):
 
         Chat(self.user, self.resp[0], CONNECTION_TYPE["GROUP"]) 
     
+    def outGroup(self):
+
+        self.user.sockUser.send(f"9|{self.resp[0]}|{self.user.getName()}|".encode("utf-32"))
+
+        resp = self.user.sockUser.recv(1024).decode("utf-32")
+
+        if (resp == f"{self.user.getName()} nao esta no grupo"):
+
+            ErrorMsg(resp)
+            return
+
     def askInGroup(self):
 
         nomeGrupo = self.resp[0]
