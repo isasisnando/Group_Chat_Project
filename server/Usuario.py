@@ -1,4 +1,5 @@
 from socket import *
+import os 
 from Grupo import Grupo
 import threading
 mensagemNotFoundUser = "canal com o usuario nao encontrado"
@@ -41,25 +42,43 @@ class Usuario:
         if (self.tipoConec == CONNECTION_TYPE["CHANNEL"] and self.conected == whoSent):
             self.sockUser.send(message.encode("utf-32"))
     
-    def receiveMsgGrupo(self, message, whoSent):
+    def receiveMsgGrupo(self, message, whoSent, toPropImage = True):
 
         if (self.tipoConec == CONNECTION_TYPE["GROUP"] and self.conected == whoSent):
             self.sockUser.send(message.encode("utf-32"))
-    
+            if message[0] == "*" and toPropImage: #if is a upload 
+                print("É O CODAS")
+                filename = "./rec/"+ message.split(":")[1]
+                file_size = os.path.getsize(filename)
+
+                with open(filename, "rb") as file:
+                    c = 0 
+                    while c <= file_size:
+                        data = file.read(1024)
+                        if not (data):
+                            break
+                        self.sockUser.sendall(data)
+                        c += len(data)
+
+                
     def start(self):
+       prev_message= ""
        while True:
             try:
                 mensagem = self.sockUser.recv(1024).decode("utf-32")
             except:
                 pass
             
-            if (mensagem == ""):
+            if (mensagem == "" or (mensagem == prev_message and mensagem.startswith("2U"))) :
                 continue
+
+            prev_message = mensagem
            
             """
                 0 -> open connection
                 1 -> close
                 2 -> message for group/channel
+                2U -> message as file/video/audio for group/channel
                 3 -> logout
                 4 -> quer adicionar um novo usuario
                 5 -> manda convite
@@ -77,6 +96,7 @@ class Usuario:
                 0|tipo|email ou nome
                 1|
                 2|groupName|userName|message
+                2U|tipo|destUser|userName|filename|file_size
                 4|nome
                 5|grupo|nome
                 6|grupo|nome
@@ -100,7 +120,7 @@ class Usuario:
                         past_messages = ""
                         if(message[1] == CONNECTION_TYPE["GROUP"]):
                             group = self.findGroup(message[2])
-                            group.propagateMessage(f"{self.getName()} joined this chat\n")
+                            group.propagateMessage(f"{self.getName()} joined this chat\n", False)
                             for message in group.messages:
                                 past_messages += f"{message}|"
                         else:
@@ -130,8 +150,47 @@ class Usuario:
                             self.serv.users[message[2]].receiveMsgUser(userMessage, self.getName())
                     except:
                         print("Sending message error")
-                    
+                case ('2U'):
+                    try: 
+                        if(message[1] == CONNECTION_TYPE["GROUP"]):
+                            filename= "./rec/" + message[4].split("/")[-1]
+                            filesize = int(message[5])
+                            # print(message)
+                            group = self.serv.groups[message[2]]
+                            userMessage = f"*{message[3]}:{filename.split("/")[-1]}:{filesize}" #if starts with "*", its a file message
+                            # print(filename, filesize, userMessage)
+                            with open(filename, "wb") as file:
+                                c = 0
+                                while c < filesize:
+                                    try:
+                                        data = self.sockUser.recv(1024)
+                                        if (not data) :
+                                            break
+                                        file.write(data)
+                                        c +=  len(data)
+                                    except:
+                                        print("Download error")
+                            group.messages.append(userMessage)
+                            group.propagateMessage(userMessage)
+                        elif(message[1] == CONNECTION_TYPE["CHANNEL"]):
+                            pass # TODO: file messages to users channel
+                    except:
+                        print("Sending file message error")
+                case ('2S'):
+                    filename = "./rec/"+ message[1]
+                    file_size = int(message[2])
+
+                    with open(filename, "rb") as file:
+                        c = 0 
+                        while c <= file_size:
+                            data = file.read(1024)
+                            if not (data):
+                                break
+                            self.sockUser.sendall(data)
+                            c += len(data)
                 case ('3'):
+                    self.conected = None
+                    self.tipoConec = None
                     break
                 case ('4'):
 

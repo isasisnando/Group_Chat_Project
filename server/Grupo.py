@@ -14,10 +14,10 @@ class Grupo:
         self.users[admin.getName()] = admin
 
 
-    def propagateMessage(self, mensagem):
+    def propagateMessage(self, mensagem, toPropImage = True):
         for user in self.users.keys():  
-            t = threading.Thread(target= self.users[user].receiveMsgGrupo, args=(mensagem, self.name))
-            t.start()
+            self.users[user].receiveMsgGrupo(mensagem, self.name, toPropImage)
+
     
     def User(self, user):
         self.users[user.getName()] = user

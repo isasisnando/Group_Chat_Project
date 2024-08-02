@@ -1,4 +1,6 @@
+from PIL import Image
 import socket
+import os
 
 PORT = 3300
 CONNECTION_TYPE = {
@@ -104,6 +106,24 @@ class ClientUser:
     def sendMsgGroup(self, dest, user,msg):
         mensagem = f"2|GROUP|{dest}|{user}|{msg}"
         self.sockUser.send(mensagem.encode("utf-32"))
+
+    def sendUploadUser(self, dest, user, filename):
+        return #:)
+    
+    def sendUploadGroup(self, dest, user,filename):
+        file_size = os.path.getsize(filename)
+        mensagem = f"2U|GROUP|{dest}|{user}|{filename}|{file_size}"
+        self.sockUser.send(mensagem.encode("utf-32"))
+        
+        with open(filename, "rb") as file:
+            c = 0 
+            while c <= file_size:
+                data = file.read(1024)
+                if not (data):
+                    break
+                self.sockUser.sendall(data)
+                c += len(data)
+
     
     def sendInviteGroup(self, who, nomeGrupo): # Who its an email
         mensagem = "5|" + nomeGrupo + '|' + who + '|'
@@ -120,7 +140,7 @@ class ClientUser:
     def openConection(self, type, channel_or_group_name):
         mensagem = f"0|{type}|{channel_or_group_name}"
         self.sockUser.send(mensagem.encode("utf-32"))
-        return (list(self.sockUser.recv(1024).decode("utf-32").split('|')))   
+        return (list(self.sockUser.recv(1024).decode("utf-32").split('|'))) 
     
     def closeConection(self):
         self.sockUser.send(("1|".encode("utf-32")))
@@ -132,4 +152,23 @@ class ClientUser:
     def takeUsers(self):
         self.sockUser.send(f"11|".encode("utf-32"))
         return (list(self.sockUser.recv(1024).decode("utf-32").split('|')))   
+    
+    def getSingleFile(self, filename, filesize):
+        mensagem = f"2S|{filename}|{filesize}"
+        self.sockUser.send(mensagem.encode("utf-32"))    
+        filename ="./rec" + filename
+        with open(filename, "wb") as file:
+                c = 0
+                while c < filesize:
+                    data = self.sockUser.recv(1024)
+                    if not (data):
+                        break
+                    file.write(data)
+                    c += len(data)
+
+        image = Image.open(filename)
+        image = image.resize((120, 120))
+        return image
+
+
     
