@@ -3,14 +3,13 @@ import threading
 
 class Grupo:
 
-    users = dict() # dict<Nick, Usuario>
-    messages = list()
-
     # pessoal, acho q aqui a gente poderia ter um set com o momento que ela entrou
     # pra definir quem seria o novo admin?
 
     def __init__(self, name, admin):
 
+        self.users = dict() # dict<Nick, Usuario>
+        self.messages = list()
         self.name, self.admin = name, admin 
         self.users[admin.getName()] = admin
 
@@ -25,9 +24,11 @@ class Grupo:
     
     def eraseUser(self, user):
         del self.users[user.getName()]
+        print(self.users.keys())
     
     def addUser(self, user):
-        self.users[user.getEmail()] = user
+        self.users[user.getName()] = user
+        print(self.users.keys())
     
     def getName(self):
         return self.name

@@ -17,16 +17,17 @@ CONNECTION_TYPE = {
 
 class Usuario:
 
-    users = list()
-    groupsAsked = set()
-    groups = list()
-    usersChannel = dict() # dict<name, msgs>
-    notifs = list() # isso aqui vai funcionar como uma pilha de notificacoes
+    # isso aqui vai funcionar como uma pilha de notificacoes
     #  toda vez q entrar a gente manda essas notificacoes
     # tem q marcar tbm os grupos q ja pediu pra entrar
 
     def __init__(self, name, email, passw, cep, ipv4, sockUser, server) -> None:
 
+        self.users = list()
+        self.groupsAsked = set()
+        self.groups = list()
+        self.usersChannel = dict() # dict<name, msgs>
+        self.notifs = list() 
         self.name, self.email, self.passw, self.cep, self.ipv4 = name, email, passw, cep, ipv4
         self.serv = server
 
@@ -89,17 +90,23 @@ class Usuario:
                 10 -> pede Groups
                 12 -> Quero infos desse usuario
                 13 -> take notifications
+                14 -> take Group Name
+                15 -> take if im in this group
+                16 -> refuses any request to a group
                 0|tipo|email ou nome
                 1|
                 2|groupName|userName|message
                 2U|tipo|destUser|userName|filename|file_size
                 4|nome
-                5|grupo|email
-                6|grupo|email
-                7|grupo|email
-                8|grupo|email
+                5|grupo|nome
+                6|grupo|nome
+                7|grupo|nome
+                8|grupo|nome
                 9|NomeGrupo|email
                 12|userName
+                14|groupName
+                15|groupName
+                16|groupName|name
            """
 
             message = mensagem.split("|")
@@ -193,24 +200,24 @@ class Usuario:
                     self.serv.users[message[1]].addUser(self.serv.users[self.name])
 
                 case('5'):
-                    if (self.name != self.serv.groups[message[1]].getAdmin()):
-                        self.sockUser.send(mensagemUnauthorized.encode("utf-32"))
-                        continue
-
                     # O usuario devera receber o grupo que foi convidado
-                    t = threading.Thread(target= self.serv.users[message[2]].rcvInvite, args=(message[1]))
-                    t.start()
+                    if (message[1] in self.serv.users[message[2]].groupsAsked):
+                        continue
+                    self.serv.users[message[2]].groupsAsked.add(message[1])
+                    self.serv.users[message[2]].rcvInvite(message[1])
                     
                 case('6'):
 
+                    if (message[1] in self.groupsAsked):
+                        continue
                     self.groupsAsked.add(message[1])
-                    t = threading.Thread(target= (self.serv.groups[message[1]].getAdmin()).pedidoParaEntrar, args=(message[2]))
+                    t = threading.Thread(target= (self.serv.groups[message[1]].getAdmin()).pedidoParaEntrar, args=(message[2], message[1]))
                     t.start()
 
                 case('7'):
                     self.tipoConec = CONNECTION_TYPE["GROUP"]
                     self.conected = message[1]
-                    # self.serv.users[message[2]].groupsAsked.remove(message[1])
+                    #self.serv.users[message[2]].groupsAsked.remove(message[1])
                     self.serv.groups[message[1]].addUser(self)
                     self.serv.users[message[2]].addGroup(self.findGroup(message[1]))
                 
@@ -226,10 +233,14 @@ class Usuario:
                     # t = threading.Thread(target= self.serv.users[message[2]].addGroup, args=(newGrupo))
                     # t.start()                
                 case('9'):
-                    t = threading.Thread(target= self.serv.groups[message[1]].eraseUser, args=(self.serv.users[message[2]]))
-                    t1 = threading.Thread(target= self.serv.users[message[2]].sairDeUmGrupo, args=(self.serv.groups[message[1]]))
-                    t1.start()
-                    t.start()
+
+                    if (message[1] not in self.serv.users[message[2]].groups):
+                        self.serv.users[message[2]].sockUser.send(f"{message[2]} nao esta no grupo".encode("utf-32"))
+                        continue
+
+                    self.serv.groups[message[1]].eraseUser(self.serv.users[message[2]])
+                    self.serv.users[message[2]].sairDeUmGrupo(self.serv.groups[message[1]])
+                    self.serv.users[message[2]].sockUser.send("ok".encode("utf-32"))
                 case('10'):
                     groupsGrl = ""
                     for grupo in self.serv.groups.keys():
@@ -256,7 +267,17 @@ class Usuario:
                     self.sockUser.send(notif.encode("utf-32"))
                 case('14'):
                     group = self.serv.groups[message[1]]
-                    self.sockUser.send(f"{group.getName()}|".encode("utf-32"))
+                    self.sockUser.send(f"{group.getName()}|{group.getAdmin().getName()}".encode("utf-32"))
+                case('15'):
+
+                    if(self.inGrupos(message[1]) == None):
+                        self.sockUser.send("voce nao esta no grupo".encode("utf-32"))
+                        continue
+
+                    self.sockUser.send("esta no grupo".encode("utf-32"))
+                case('16'):
+
+                    self.serv.users[message[2]].groupsAsked.remove(message[1])
 
     def addUser(self, userStuff):   # esse userStuff é um objeto Usuario
 
@@ -268,38 +289,43 @@ class Usuario:
 
         # 3 implica um convite
 
-        mensagem = "3@"
-        mensagem += group + '@'
-
+        mensagem = f"3@{group}@"
+        self.groupsAsked.add(group)
         self.notifs.append(mensagem)
-    
-    def pedidoParaEntrar(self, whoWantsIn): # A gente passa ao admin quem pediu pra entrar
-        
-        message = "4@"
 
-        message += whoWantsIn + '@'
+    def pedidoParaEntrar(self, whoWantsIn, wichGroup): # A gente passa ao admin quem pediu pra entrar
+        
+        message = f"4@{whoWantsIn}@{wichGroup}"
 
         self.notifs.append(message)
     
     def sairDeUmGrupo(self, grupo):
 
-        self.grupos.remove(grupo)
-
+        self.groups.remove(grupo)
+        print(self.groups)
         # se a gente tivesse mais grupos usar um dict seria melhor
         # para a complexidade
 
         grupo.propagateMessage(f"{self.name} saiu.")
 
-    
     def addGroup(self, groupStuff): # esse groupStuff é um objeto Grupo
-
         self.groups.append(groupStuff)
+        print(self.groups)
         return
 
     def findGroup(self, groupName):
         for group in self.serv.groups.values():
             if group.name == groupName:
                 return group
+    
+    def inGrupos(self, groupName):
+
+        for grupo in self.groups:
+            if grupo.name == groupName:
+                print(self.groups)
+                return grupo
+        
+        return None
     
     def getName(self):
         return self.name

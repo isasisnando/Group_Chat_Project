@@ -44,24 +44,36 @@ class ErrorMsg(tk.Tk):
 
 class Notif(tk.Tk):
 
-    def __init__(self, message):
+    def __init__(self, user : ClientUser):
         super().__init__()
 
-        self.geometry("200x200")
+        self.geometry("450x360")
 
         self.title("Notificação")
 
         self.frame = tk.Frame(self, background="green")
         self.frame.pack(fill="both", expand=True)
 
-        tk.Label(self.frame, text="Notificação: "+message, background="black", foreground="white", width=10, height=10).place(relwidth=1, y=75)
+        tk.Label(self.frame, text="Notificação: ", background="black", foreground="white", width=10, height=10).place(relwidth=1, y=75)
 
         self.mainloop()
+    
+    def trataNotif(self, message):
 
-# class NotifWtButton(tk.Tk):
+        message = message.split('@')
 
-#     def __init__(self, message):
-#         super().__init__
+        if (message[0] == '3'):
+
+            return("Convite", message[1])
+        
+        return("InReq", message[1], message[2])
+    
+    def sendAns(self, acOrNac, who, group):
+
+        if(acOrNac):
+            self.user.sockUser.send(f"7|{group}|{who}|".encode("utf-32"))
+        else:
+            self.user.sockUser.send(f"16|{group}|{who}|".encode("utf-32"))
 
 
 class Start(tk.Tk):
@@ -255,12 +267,27 @@ class IntialPage(tk.Tk):
         self.groups_button_dropdown = tk.Button(self.frame, background="#FFFFFF",text="Escolher grupo", command=self.choose_group)
         self.groups_button_dropdown.place(x=230, y=200)
 
+        self.t_groups_dropdown_label = tk.Label(self.frame, text="Grupos (teste):", background="white")
+        self.t_groups_dropdown_label.place(x=170, y=240)
+
+        self.t_groups_click = tk.StringVar(self.frame)
+        self.t_groups_click.set("Escolher")
+        self.t_groups_dropdown = tk.OptionMenu(self.frame, self.t_groups_click , None, *self.user.takeGroups())
+        self.t_groups_dropdown.place(x=230, y=240)
+
+        self.t_groups_button_dropdown = tk.Button(self.frame, background="#FFFFFF",text="Escolher grupo", command=self.choose_t_group)
+        self.t_groups_button_dropdown.place(x=230, y=280)
+
         self.frame.mainloop()
 
     def choose_group(self):
         # self.destroy()
         NewChat(self, self.frame, self.user, self.groups_click.get(), CONNECTION_TYPE["GROUP"])
         # Chat(self.user, self.groups_click.get(), "GROUP")
+    
+    def choose_t_group(self):
+        self.destroy()
+        GroupPerfilScreen(self.user, self.t_groups_click.get())
 
     def choose_user(self):
         self.destroy()
@@ -340,7 +367,6 @@ class Chat(tk.Tk):
         self.send_button = tk.Button(self.frame, text = "Send", command=self.write)
         self.send_button.config(font=("Arial", 12))
         self.send_button.pack(padx=20, pady=5)
-
         self.interface_done = True
         self.frame.protocol("WM_DELETE_WINDOW", self.stop)
         
@@ -356,6 +382,7 @@ class Chat(tk.Tk):
         receive_thread.start()
 
         self.frame.mainloop()
+    
 
     def connectToUser(self):
         messages = self.user.openConection(CONNECTION_TYPE["CHANNEL"], self.destName)
@@ -755,17 +782,95 @@ class GroupPerfilScreen(tk.Tk):
         tk.Label(self.frame, text="Informações pessoais").place(relwidth=1, y=24)
 
         self.user = user
-
+        self.groupName = groupName
         self.user.sockUser.send((f"14|{groupName}").encode("utf-32"))
 
         self.resp = self.user.sockUser.recv(1024).decode("utf-32")
 
         self.resp = self.resp.split('|')
 
-        # Joga pra mim essa tela aqui ao clicar no fera
-        tk.Label(self.frame, text="Nome:", background="#4EABB0",foreground="#006666", font=("Arial", 14)).place(y=140, x=24)
-        tk.Label(self.frame, text=self.resp[0], background="#4EABB0",foreground="#006666", font=("Arial", 14)).place(y=140, x=95)
-        tk.Button(self.frame, text="Pedir pra entrar", bg="red", relief="raised", height=1, width=10).place(y=250, x=75)
-        tk.Button(self.frame,  text="Abrir o chat", bg="red", relief="raised", height=1, width=10).place(y=250, x=200)
-        
+        tk.Label(self.frame, text="Nome:", background="#4EABB0",foreground="#006666", font=("Arial", 14)).place(y=100, x=24)
+        tk.Label(self.frame, text=self.resp[0], background="#4EABB0",foreground="#006666", font=("Arial", 14)).place(y=100, x=95)
+        tk.Label(self.frame, text="Admin:", background="#4EABB0",foreground="#006666", font=("Arial", 14)).place(y=150, x=24)
+        tk.Label(self.frame, text=self.resp[1], background="#4EABB0",foreground="#006666", font=("Arial", 14)).place(y=150, x=95)
+        if(self.resp[1] != self.user.getName()):
+            tk.Button(self.frame,  text="Sair do grupo", command=self.outGroup, bg="red", relief="raised", height=1, width=10).place(y=50, x=260)
+            tk.Button(self.frame, text="Pedir pra entrar", bg="red", command=self.askInGroup, relief="raised", height=1, width=10).place(y=250, x=75)
+        else:
+            tk.Button(self.frame, text="Enviar convite", command=self.abreInviteScreen, bg="red", relief="raised", height=1, width=10).place(y=250, x=75)
+        tk.Button(self.frame,  text="Abrir o chat", bg="red", command=self.abreGroup, relief="raised", height=1, width=10).place(y=250, x=200)
+
+    def abreGroup(self):
+
+        nomeGrupo = self.resp[0]
+        self.user.sockUser.send(f"15|{nomeGrupo}".encode("utf-32"))
+        resp = self.user.sockUser.recv(1024).decode("utf-32")
+        if(resp == "voce nao esta no grupo"):
+
+            self.destroy()
+            GroupPerfilScreen(self.user, self.groupName)
+            ErrorMsg(resp)
+            return
+
+        Chat(self.user, self.resp[0], CONNECTION_TYPE["GROUP"]) 
+    
+    def outGroup(self):
+
+        self.user.sockUser.send(f"9|{self.resp[0]}|{self.user.getName()}|".encode("utf-32"))
+
+        resp = self.user.sockUser.recv(1024).decode("utf-32")
+
+        if (resp == f"{self.user.getName()} nao esta no grupo"):
+
+            ErrorMsg(resp)
+            return
+
+    def askInGroup(self):
+
+        nomeGrupo = self.resp[0]
+        self.user.sockUser.send(f"6|{nomeGrupo}|{self.user.getName()}".encode("utf-32"))
+    
+    def abreInviteScreen(self):
+        self.destroy()
+        ConvidarUsuarios(self.user, self.groupName)
+
+class ConvidarUsuarios(tk.Tk):
+
+    def __init__(self, user : ClientUser, nameGrupo : str):
+
+        super().__init__()
+
+        self.user, self.nomeGrupo = user, nameGrupo
+
+        self.geometry("360x300")
+        self.title("Convidar usuarios")
+        self.frame = tk.Frame(self, background= "#95ECEC")
+        self.frame.pack(fill="both", expand=True)
+
+        tk.Label(self.frame, text="Convidar Usuarios").place(relwidth=1, y=24)
+
+        self.users_dropdown_label = tk.Label(self.frame, text="Usuários:", background="white")
+        self.users_dropdown_label.place(x=94, y=90)
+
+
+        self.users_click = tk.StringVar(self.frame)
+        self.users_click.set("Escolher")
+        self.users_dropdown = tk.OptionMenu(self.frame, self.users_click, None,*self.user.takeUsers())
+        self.users_dropdown.place(x=154, y=90)
+       
+        self.users_button_dropdown = tk.Button(self.frame, background="#FFFFFF",text="Convidar usuário", command=self.sendInvite)
+        self.users_button_dropdown.place(x=114, y=125)
+
+        tk.Button(self.frame,  text="Voltar", bg="red", command=self.voltar, relief="raised", height=1, width=10).place(y=260, x=20)
+    
+    def sendInvite(self):
+
+        who = self.users_click.get()
+        mensagem = f"5|{self.nomeGrupo}|{who}"
+
+        self.user.sockUser.send(mensagem.encode("utf-32"))
+    
+    def voltar(self):
+        self.destroy()
+        IntialPage(self.user)
 Start()
