@@ -6,6 +6,7 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 import socket 
 import os
+import pygame
 from pathlib import Path
 from ClientUser import ClientUser
 
@@ -554,14 +555,18 @@ class NewChat(tk.Canvas):
             return
         if(message[0] == "*"):
             message = message.split(":")
-            filename = message[1]
+            filename = str(message[1])
             filesize = int(message[2])
-            image = self.user.getSingleFile(filename, filesize)
-
+            filedata = self.user.getSingleFile(filename, filesize)
+            type_ = None
+            if(filename.endswith(".mp3")):
+                type_ = DATA_TYPE["AUDIO"]
+            else:
+                type_ = DATA_TYPE["IMAGE"]
             data_dict = {
-                "type": DATA_TYPE["IMAGE"],
+                "type": type_,
                 "from": message[0][1:],
-                "message": image
+                "message": filedata
             }
             self.received_message_format(data_dict)
         elif ":" in message:
@@ -653,13 +658,22 @@ class NewChat(tk.Canvas):
                                         break
                                     file.write(data)
                                     c += len(data)
-                        image = Image.open(filename)
-                        image = image.resize((120, 120))
-                        data_dict = {
-                            "type": DATA_TYPE["IMAGE"],
-                            "from": sender,
-                            "message": image
-                        }
+
+                        print(filename)
+                        if(filename.endswith(".mp3")):
+                            data_dict = {
+                                "type": DATA_TYPE["AUDIO"],
+                                "from": sender,
+                                "message": filename
+                            }
+                        else:
+                            image = Image.open(filename)
+                            image = image.resize((120, 120))
+                            data_dict = {
+                                "type": DATA_TYPE["IMAGE"],
+                                "from": sender,
+                                "message": image
+                            }
                         self.received_message_format(data_dict)
 
                     else:
@@ -714,12 +728,49 @@ class NewChat(tk.Canvas):
         elif (data_type == DATA_TYPE["IMAGE"]):
             im = ImageTk.PhotoImage(message)
 
-            m_frame = tk.Frame(self.scrollable_frame, bg="#595656")
+            m_frame = tk.Frame(self.scrollable_frame, bg=PRIMARY_COLOR)
 
             m_frame.columnconfigure(1, weight=1)
 
             i_label = tk.Label(m_frame, bg=PRIMARY_COLOR, image=im)
             i_label.image = im
+            i_label.grid(row=1, column=1, padx=2, pady=2, sticky="w")
+
+            t_label = tk.Label(m_frame, bg="#595656",fg="white", text=from_, font="lucida 7 bold", justify="left", anchor="w")
+            t_label.grid(row=0, column=1, padx=2, sticky="w")
+
+            m_frame.pack(pady=10, padx=10, fill="x", expand=True, anchor="e")
+
+            self.canvas.update_idletasks()
+            self.canvas.yview_moveto(1.0)
+        elif (data_type == DATA_TYPE["AUDIO"]):
+            print(message)
+            pygame.mixer.init()
+            self.is_playing = False
+            self.btn_text = "TOCAR"
+            def play():
+                pygame.mixer.music.load(message)
+                pygame.mixer.music.play(loops=0)
+            def stop():
+                pygame.mixer.music.stop()
+
+            def handle_click():
+                if (self.is_playing):
+                    self.is_playing = False
+                    self.btn_text = "PARAR"
+                    stop()
+                else:
+                    self.is_playing = True
+                    self.btn_text = "TOCAR"
+                    play()
+
+            
+
+            m_frame = tk.Frame(self.scrollable_frame, bg=PRIMARY_COLOR)
+
+            m_frame.columnconfigure(1, weight=1)
+
+            i_label = tk.Button(m_frame,fg="white", font="lucida 7 bold",justify="left", anchor="w", bg="cyan", text=self.btn_text, command=handle_click)
             i_label.grid(row=1, column=1, padx=2, pady=2, sticky="w")
 
             t_label = tk.Label(m_frame, bg="#595656",fg="white", text=from_, font="lucida 7 bold",
