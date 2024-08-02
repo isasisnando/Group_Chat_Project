@@ -41,11 +41,12 @@ class Usuario:
         if (self.tipoConec == CONNECTION_TYPE["CHANNEL"] and self.conected == whoSent):
             self.sockUser.send(message.encode("utf-32"))
     
-    def receiveMsgGrupo(self, message, whoSent):
+    def receiveMsgGrupo(self, message, whoSent, toPropImage = True):
 
         if (self.tipoConec == CONNECTION_TYPE["GROUP"] and self.conected == whoSent):
             self.sockUser.send(message.encode("utf-32"))
-            if message[0] == "*": #if is a upload 
+            if message[0] == "*" and toPropImage: #if is a upload 
+                print("É O CODAS")
                 filename = "./rec/"+ message.split(":")[1]
                 file_size = os.path.getsize(filename)
 
@@ -112,7 +113,7 @@ class Usuario:
                         past_messages = ""
                         if(message[1] == CONNECTION_TYPE["GROUP"]):
                             group = self.findGroup(message[2])
-                            group.propagateMessage(f"{self.getName()} joined this chat\n")
+                            group.propagateMessage(f"{self.getName()} joined this chat\n", False)
                             for message in group.messages:
                                 past_messages += f"{message}|"
                         else:
@@ -168,8 +169,21 @@ class Usuario:
                             pass # TODO: file messages to users channel
                     except:
                         print("Sending file message error")
+                case ('2S'):
+                    filename = "./rec/"+ message[1]
+                    file_size = int(message[2])
 
+                    with open(filename, "rb") as file:
+                        c = 0 
+                        while c <= file_size:
+                            data = file.read(1024)
+                            if not (data):
+                                break
+                            self.sockUser.sendall(data)
+                            c += len(data)
                 case ('3'):
+                    self.conected = None
+                    self.tipoConec = None
                     break
                 case ('4'):
 

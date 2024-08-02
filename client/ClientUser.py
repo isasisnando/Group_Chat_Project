@@ -1,3 +1,4 @@
+from PIL import Image
 import socket
 import os
 
@@ -139,7 +140,7 @@ class ClientUser:
     def openConection(self, type, channel_or_group_name):
         mensagem = f"0|{type}|{channel_or_group_name}"
         self.sockUser.send(mensagem.encode("utf-32"))
-        return (list(self.sockUser.recv(1024).decode("utf-32").split('|')))   
+        return (list(self.sockUser.recv(1024).decode("utf-32").split('|'))) 
     
     def closeConection(self):
         self.sockUser.send(("1|".encode("utf-32")))
@@ -151,6 +152,23 @@ class ClientUser:
     def takeUsers(self):
         self.sockUser.send(f"11|".encode("utf-32"))
         return (list(self.sockUser.recv(1024).decode("utf-32").split('|')))   
+    
+    def getSingleFile(self, filename, filesize):
+        mensagem = f"2S|{filename}|{filesize}"
+        self.sockUser.send(mensagem.encode("utf-32"))    
+
+        with open(filename, "wb") as file:
+                c = 0
+                while c < filesize:
+                    data = self.sockUser.recv(1024)
+                    if not (data):
+                        break
+                    file.write(data)
+                    c += len(data)
+
+        image = Image.open(filename)
+        image = image.resize((120, 120))
+        return image
 
 
     

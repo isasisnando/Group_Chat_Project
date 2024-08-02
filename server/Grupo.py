@@ -15,9 +15,9 @@ class Grupo:
         self.users[admin.getName()] = admin
 
 
-    def propagateMessage(self, mensagem):
+    def propagateMessage(self, mensagem, toPropImage = True):
         for user in self.users.keys():  
-            self.users[user].receiveMsgGrupo(mensagem, self.name)
+            self.users[user].receiveMsgGrupo(mensagem, self.name, toPropImage)
 
     
     def User(self, user):

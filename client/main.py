@@ -307,6 +307,7 @@ class NewChat(tk.Canvas):
         self.user = user
         self.destName = chatName
         self.tipoChat = tipoChat
+        print(user.sockUser)
 
         self.running = True
         self.interface_done = False 
@@ -317,7 +318,7 @@ class NewChat(tk.Canvas):
         self.first_frame.pack_forget()
         
         self.parent = parent
-        self.parent.bind('<Return>', lambda e: print(e))
+        self.parent.bind('<Return>', lambda e: print("É O CODAS NTJ"))
 
         self.parent.protocol("WM_DELETE_WINDOW", self.stop)
 
@@ -383,26 +384,30 @@ class NewChat(tk.Canvas):
 
     def unpackMessages(self, message):
         data = dict()
+        if not message.strip(): 
+            return
         if(message[0] == "*"):
             message = message.split(":")
-            filename = "./rec/" + message[1]
+            filename = message[1]
             filesize = int(message[2])
-            sender = message[0][1:]
-            with open(filename, "wb") as file:
-                    c = 0
-                    while c < filesize:
-                        data = self.user.sockUser.recv(1024)
-                        if not (data):
-                            break
-                        file.write(data)
-                        c += len(data)
-            image = Image.open(filename)
-            image = image.resize((120, 120))
+            image = self.user.getSingleFile(filename, filesize)
+
             data_dict = {
                 "type": DATA_TYPE["IMAGE"],
-                "from": sender,
+                "from": message[0][1:],
                 "message": image
             }
+            self.received_message_format(data_dict)
+        elif ":" in message:
+            message = message.split(":")
+            sender = message[0].strip()
+            text_data = message[1].strip()
+            data_dict = {
+                "type": DATA_TYPE["TEXT"],
+                "from": sender,
+                "message": text_data
+            }
+            self.received_message_format(data_dict)
         else:
             data_dict = {
                 "type": DATA_TYPE["JOIN_NOTIFICATION"],
@@ -454,10 +459,15 @@ class NewChat(tk.Canvas):
             try:
                 if self.interface_done:
                     message = self.user.sockUser.recv(1024)
-                    print(message)
                     message = message.decode("utf-32")
-
-                    if ("joined this chat" in message):
+                    
+                    if ("|" in message):
+                        message = message.split("|")
+                        for m in message:
+                            self.unpackMessages(m)
+                    elif not message.strip():
+                        continue
+                    elif ("joined this chat" in message):
                         data_dict = {
                             "type": DATA_TYPE["JOIN_NOTIFICATION"],
                             "from": "_",
@@ -501,7 +511,7 @@ class NewChat(tk.Canvas):
             except Exception as e:
                 print("Receiving error")
                 print(e)
-                self.user.sockUser.close()
+                self.user.closeConection()
                 break
 
     def received_message_format(self, data):
@@ -525,12 +535,10 @@ class NewChat(tk.Canvas):
 
             m_frame.columnconfigure(1, weight=1)
 
-            m_label = tk.Label(m_frame, wraplength=250,fg="black", bg="#ff7e62", text=message, font="lucida 9 bold", justify="left",
-                            anchor="w")
+            m_label = tk.Label(m_frame, wraplength=250,fg="black", bg="#ff7e62", text=message, font="lucida 9 bold", justify="left", anchor="w")
             m_label.grid(row=1, column=1, padx=2, pady=2, sticky="w")
 
-            t_label = tk.Label(m_frame, bg=PRIMARY_COLOR, text=from_, font="lucida 7 bold",
-                           justify="left", anchor="w")
+            t_label = tk.Label(m_frame, bg=PRIMARY_COLOR, text=from_, font="lucida 7 bold",justify="left", anchor="w")
             t_label.grid(row=0, column=1, padx=2, sticky="w")
 
             m_frame.pack(pady=10, padx=10, fill="x", expand=True, anchor="e")
@@ -544,7 +552,7 @@ class NewChat(tk.Canvas):
 
             m_frame.columnconfigure(1, weight=1)
 
-            i_label = tk.Label(m_frame, bg="#595656", image=im)
+            i_label = tk.Label(m_frame, bg=PRIMARY_COLOR, image=im)
             i_label.image = im
             i_label.grid(row=1, column=1, padx=2, pady=2, sticky="w")
 
@@ -557,143 +565,6 @@ class NewChat(tk.Canvas):
             self.canvas.update_idletasks()
             self.canvas.yview_moveto(1.0)
     
-class Chat(tk.Tk): 
-    def __init__(self, user: ClientUser, chatName, tipoChat):
-        super().__init__()
-        self.user = user
-        self.destName = chatName
-        self.tipoChat = tipoChat
-        self.running = True 
-        self.interface_done = False
-
-        self.image_tk = ImageTk.PhotoImage
-
-        self.frame = tk.Tk()
-        # self.geometry("400x650")
-        self.frame.configure(bg= "cyan")
-        # self.title(f"{self.group_name} chat")
-        self.chat_label = tk.Label(self.frame, text = f"{self.destName} chat:", bg="lightgray")
-        self.chat_label.config(font=("Arial", 12))
-        self.chat_label.pack(padx=20, pady=5)
-        
-        self.text_area = tkinter.scrolledtext.ScrolledText(self.frame)
-        self.text_area.pack(padx=20, pady=5)
-        self.text_area.config(state='disabled', bg=PRIMARY_COLOR)
-
-        self.msg_label = tk.Label(self.frame, text="Message:", bg="lightgray")
-        self.msg_label.config(font=("Arial", 12))
-        self.msg_label.pack(padx=20, pady=5)
-
-        self.input_area = tk.Text(self.frame, height=3, bg=PRIMARY_COLOR)
-        self.input_area.pack(padx=20, pady=5)
-
-
-        self.file_transfer_button = tk.Button(self.frame, text= "Upload", command=self.upload)
-        self.file_transfer_button.config(font=("Arial", 12))
-        self.file_transfer_button.pack(padx=20, pady=5)
-    
-
-        self.send_button = tk.Button(self.frame, text = "Send", command=self.write)
-        self.send_button.config(font=("Arial", 12))
-        self.send_button.pack(padx=20, pady=5)
-
-        self.interface_done = True
-        self.frame.protocol("WM_DELETE_WINDOW", self.stop)
-        
-        if(self.tipoChat == CONNECTION_TYPE["GROUP"]):
-            self.connectToGroup()
-        else:
-            self.connectToUser()
-        
-
-        
-        receive_thread = threading.Thread(target=self.receive)
-        receive_thread.daemon = True
-        receive_thread.start()
-
-        self.frame.mainloop()
-
-    def connectToUser(self):
-        messages = self.user.openConection(CONNECTION_TYPE["CHANNEL"], self.destName)
-        for message in messages: 
-            self.text_area.config(state="normal")
-            self.text_area.insert('end', message)
-            self.text_area.yview('end')
-            self.text_area.config(state= "disabled")
-
-    def connectToGroup(self):
-        self.user.acceptInGroup(self.destName)
-        messages = self.user.openConection(CONNECTION_TYPE["GROUP"], self.destName)
-        for message in messages: 
-            self.text_area.config(state="normal")
-            self.text_area.insert('end', message)
-            self.text_area.yview('end')
-            self.text_area.config(state= "disabled")
-
-
-    def write(self):
-        if (self.tipoChat == CONNECTION_TYPE["GROUP"]):
-            self.user.sendMsgGroup(self.destName, self.user.getName(), self.input_area.get('1.0', 'end'))
-        elif (self.tipoChat == CONNECTION_TYPE["CHANNEL"]): 
-            self.user.sendMsgUser(self.destName, self.user.getName(), self.input_area.get('1.0', 'end'))
-    
-        self.input_area.delete('1.0', 'end')
-
-    def upload(self):
-        filename = tkinter.filedialog.askopenfilename()
-        if filename:
-            self.user.sendUploadGroup(self.destName, self.user.getName(), filename)
-
-    def stop(self):
-        self.running = False
-        self.frame.destroy()
-        message = f"{self.user.getName()} has left the chat"
-        self.user.sockUser.send(message.encode("utf-32"))
-        self.input_area.delete('1.0', 'end')
-        self.user.closeConection()
-        IntialPage(self.user)
-
-    def receive(self):
-        while self.running:
-            try:
-                if self.interface_done:
-                    message = self.user.sockUser.recv(1024)
-                    message = message.decode("utf-32")
-
-                    if message[0] =="*":
-                        message = message.split(":")
-                        filename = "./rec/" + message[1]
-                        filesize = int(message[2])
-
-                        with open(filename, "wb") as file:
-                                c = 0
-                                while c < filesize:
-                                    data = self.user.sockUser.recv(1024)
-                                    if not (data):
-                                        break
-                                    file.write(data)
-                                    c += len(data)
-                        image = Image.open(filename)
-                        image = image.resize((120, 120))
-                        self.text_area.config(state='normal')
-                        self.text_area.image_create(tk.END, image=self.image_tk(image))
-                        self.text_area.insert(tk.END, "\n")  
-                        self.text_area.config(state='disabled')
-
-
-                    else:
-                        self.text_area.config(state="normal")
-                        self.text_area.insert('end', message)
-                        self.text_area.yview('end')
-                        self.text_area.config(state= "disabled")
-            except ConnectionAbortedError: 
-                break
-            except Exception as e:
-                print("Receiving error")
-                print(e)
-                self.user.sockUser.close()
-                break
-
 class PerfilScreen(tk.Tk):
     
     def __init__(self, user : ClientUser, personName : str):
