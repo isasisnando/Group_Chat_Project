@@ -282,8 +282,8 @@ class IntialPage(tk.Tk):
 
     def choose_group(self):
         # self.destroy()
-        NewChat(self, self.frame, self.user, self.groups_click.get(), CONNECTION_TYPE["GROUP"])
         # Chat(self.user, self.groups_click.get(), "GROUP")
+        NewChat(self, self.frame, self.user, self.groups_click.get(), CONNECTION_TYPE["GROUP"])
     
     def choose_t_group(self):
         self.destroy()
