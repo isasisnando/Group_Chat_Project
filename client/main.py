@@ -2,6 +2,7 @@ import threading
 import tkinter as tk
 import tkinter.scrolledtext
 import tkinter.filedialog
+from tkinter import ttk
 from PIL import Image, ImageTk
 import socket 
 import os
@@ -17,6 +18,14 @@ CONNECTION_TYPE = {
     "GROUP": "GROUP",
     "CHANNEL": "CHANNEL",
     "NONE": None,
+}
+
+DATA_TYPE = {
+    "JOIN_NOTIFICATION": "JOIN_NOTIFICATION",
+    "LEAVE_NOTIFICATION": "LEAVE_NOTIFICATION",
+    "TEXT": "TEXT",
+    "IMAGE": "IMAGE",
+    "AUDIO": "AUDIO",
 }
 
 class ErrorMsg(tk.Tk):
@@ -249,8 +258,9 @@ class IntialPage(tk.Tk):
         self.frame.mainloop()
 
     def choose_group(self):
-        self.destroy()
-        Chat(self.user, self.groups_click.get(), "GROUP")
+        # self.destroy()
+        NewChat(self, self.frame, self.user, self.groups_click.get(), CONNECTION_TYPE["GROUP"])
+        # Chat(self.user, self.groups_click.get(), "GROUP")
 
     def choose_user(self):
         self.destroy()
@@ -292,14 +302,260 @@ class CreateGroup(tk.Tk):
         IntialPage(self.user)
 
 class NewChat(tk.Canvas):
-    def __init__(self, user: ClientUser, chatName, tipoChat):
+    def __init__(self,parent, firstFrame, user: ClientUser,chatName, tipoChat):
         super().__init__()
         self.user = user
         self.destName = chatName
         self.tipoChat = tipoChat
-        self.running = True 
-        self.interface_done = False
 
+        self.running = True
+        self.interface_done = False 
+
+        self.window = f"Chat room:"
+        
+        self.first_frame = firstFrame
+        self.first_frame.pack_forget()
+        
+        self.parent = parent
+        self.parent.bind('<Return>', lambda e: print(e))
+
+        self.parent.protocol("WM_DELETE_WINDOW", self.stop)
+
+        screen_width, screen_height = self.winfo_screenwidth(), self.winfo_screenheight()
+
+        x_co = int((screen_width / 2) - (680 / 2))
+        y_co = int((screen_height / 2) - (750 / 2)) - 80
+        self.parent.geometry(f"680x750+{x_co}+{y_co}")
+
+        container = tk.Frame(self)
+        container.place(x=40, y=120, width=450, height=550)
+        self.canvas = tk.Canvas(container, bg=PRIMARY_COLOR)
+        self.scrollable_frame = tk.Frame(self.canvas, bg="cyan")
+
+        scrollable_window = self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+
+        def configure_scroll_region(e):
+            self.canvas.configure(scrollregion=self.canvas.bbox('all'))
+
+        def resize_frame(e):
+            self.canvas.itemconfig(scrollable_window, width=e.width)
+
+        self.scrollable_frame.bind("<Configure>", configure_scroll_region)
+
+        scrollbar = ttk.Scrollbar(container, orient="vertical", command=self.canvas.yview)
+        self.canvas.configure(yscrollcommand=scrollbar.set)
+        self.yview_moveto(1.0)
+
+        scrollbar.pack(side="right", fill="y")
+
+        self.canvas.bind("<Configure>", resize_frame)
+        self.canvas.pack(fill="both", expand=True)
+
+        self.send_button = tk.Button(self, text="Send", font="lucida 11 bold", bg="red", padx=10, relief="solid", bd=2, command=self.write)
+        self.send_button.place(x=500, y=680)
+
+        self.file_transfer_button = tk.Button(self, text= "Upload",font="lucida 11 bold", bg="red", padx=10, relief="solid", bd=2, command=self.upload)
+        self.file_transfer_button.place(x=350, y=680)
+
+        self.input_area = tk.Text(self, font="lucida 10 bold", width=38, height=2, highlightcolor="cyan", highlightthickness=1)
+        self.input_area.place(x=40, y=681)
+        self.input_area.focus_set()
+
+        m_frame = tk.Frame(self.scrollable_frame, bg=PRIMARY_COLOR)
+
+        m_label = tk.Label(m_frame, wraplength=250, text=f"{self.destName} {CONNECTION_TYPE[self.tipoChat]}:",font="lucida 10 bold", bg="red")
+        m_label.pack(fill="x")
+
+        m_frame.pack(pady=10, padx=10, fill="x", expand=True, anchor="e")
+
+        self.pack(fill="both", expand=True)
+
+        self.interface_done = True
+
+        if(self.tipoChat == CONNECTION_TYPE["GROUP"]):
+            self.connectToGroup()
+        else:
+            self.connectToUser()
+
+        receiving_thread = threading.Thread(target=self.receive)
+        receiving_thread.daemon = True
+        receiving_thread.start()
+
+    def unpackMessages(self, message):
+        data = dict()
+        if(message[0] == "*"):
+            message = message.split(":")
+            filename = "./rec/" + message[1]
+            filesize = int(message[2])
+            sender = message[0][1:]
+            with open(filename, "wb") as file:
+                    c = 0
+                    while c < filesize:
+                        data = self.user.sockUser.recv(1024)
+                        if not (data):
+                            break
+                        file.write(data)
+                        c += len(data)
+            image = Image.open(filename)
+            image = image.resize((120, 120))
+            data_dict = {
+                "type": DATA_TYPE["IMAGE"],
+                "from": sender,
+                "message": image
+            }
+        else:
+            data_dict = {
+                "type": DATA_TYPE["JOIN_NOTIFICATION"],
+                "from": "_",
+                "message": message
+            }
+            self.received_message_format(data_dict)
+
+    def connectToUser(self):
+        messages = self.user.openConection(CONNECTION_TYPE["CHANNEL"], self.destName)
+        for message in messages: 
+            self.text_area.config(state="normal")
+            self.text_area.insert('end', message)
+            self.text_area.yview('end')
+            self.text_area.config(state= "disabled")
+
+    def connectToGroup(self):
+        self.user.acceptInGroup(self.destName)
+        messages = self.user.openConection(CONNECTION_TYPE["GROUP"], self.destName)
+        for message in messages: 
+            self.unpackMessages(message)
+
+
+    def write(self):
+        if (self.tipoChat == CONNECTION_TYPE["GROUP"]):
+            self.user.sendMsgGroup(self.destName, self.user.getName(), self.input_area.get('1.0', 'end'))
+        elif (self.tipoChat == CONNECTION_TYPE["CHANNEL"]): 
+            self.user.sendMsgUser(self.destName, self.user.getName(), self.input_area.get('1.0', 'end'))
+    
+        self.input_area.delete('1.0', 'end')
+
+    def upload(self):
+        filename = tkinter.filedialog.askopenfilename()
+        if filename:
+            self.user.sendUploadGroup(self.destName, self.user.getName(), filename)
+
+    def stop(self):
+        self.running = False
+        self.parent.destroy()
+        print("Fluminense")
+        message = f"{self.user.getName()} has left the chat"
+        self.user.sockUser.send(message.encode("utf-32"))
+        self.input_area.delete('1.0', 'end')
+        self.user.closeConection()
+        IntialPage(self.user)
+
+    def receive(self):
+        while self.running:
+            try:
+                if self.interface_done:
+                    message = self.user.sockUser.recv(1024)
+                    print(message)
+                    message = message.decode("utf-32")
+
+                    if ("joined this chat" in message):
+                        data_dict = {
+                            "type": DATA_TYPE["JOIN_NOTIFICATION"],
+                            "from": "_",
+                            "message": message
+                        }
+                        self.received_message_format(data_dict)
+                    elif message[0] =="*":
+                        message = message.split(":")
+                        filename = "./rec/" + message[1]
+                        filesize = int(message[2])
+                        sender = message[0][1:]
+                        with open(filename, "wb") as file:
+                                c = 0
+                                while c < filesize:
+                                    data = self.user.sockUser.recv(1024)
+                                    if not (data):
+                                        break
+                                    file.write(data)
+                                    c += len(data)
+                        image = Image.open(filename)
+                        image = image.resize((120, 120))
+                        data_dict = {
+                            "type": DATA_TYPE["IMAGE"],
+                            "from": sender,
+                            "message": image
+                        }
+                        self.received_message_format(data_dict)
+
+                    else:
+                        message = message.split(":")
+                        sender = message[0].strip()
+                        text_data = message[1].strip()
+                        data_dict = {
+                            "type": DATA_TYPE["TEXT"],
+                            "from": sender,
+                            "message": text_data
+                        }
+                        self.received_message_format(data_dict)
+            except ConnectionAbortedError: 
+                break
+            except Exception as e:
+                print("Receiving error")
+                print(e)
+                self.user.sockUser.close()
+                break
+
+    def received_message_format(self, data):
+
+        message = data['message']
+        from_ = data['from']
+        data_type = data['type']
+
+        if (data_type == DATA_TYPE["JOIN_NOTIFICATION"] or data_type == DATA_TYPE["LEAVE_NOTIFICATION"]):
+            m_frame = tk.Frame(self.scrollable_frame, bg="cyan")
+
+            m_label = tk.Label(m_frame, wraplength=250, text=message, font="lucida 10 bold", justify="left", bg="cyan")
+            m_label.pack()
+
+            m_frame.pack(pady=6, padx=10, fill="x", expand=True, anchor="e")
+
+            self.canvas.yview_moveto(1.0)
+        elif (data_type == DATA_TYPE["TEXT"]): 
+
+            m_frame = tk.Frame(self.scrollable_frame, bg=PRIMARY_COLOR)
+
+            m_frame.columnconfigure(1, weight=1)
+
+            m_label = tk.Label(m_frame, wraplength=250,fg="black", bg="#ff7e62", text=message, font="lucida 9 bold", justify="left",
+                            anchor="w")
+            m_label.grid(row=1, column=1, padx=2, pady=2, sticky="w")
+
+            t_label = tk.Label(m_frame, bg=PRIMARY_COLOR, text=from_, font="lucida 7 bold",
+                           justify="left", anchor="w")
+            t_label.grid(row=0, column=1, padx=2, sticky="w")
+
+            m_frame.pack(pady=10, padx=10, fill="x", expand=True, anchor="e")
+
+            self.canvas.update_idletasks()
+            self.canvas.yview_moveto(1.0)
+        elif (data_type == DATA_TYPE["IMAGE"]):
+            im = ImageTk.PhotoImage(message)
+
+            m_frame = tk.Frame(self.scrollable_frame, bg="#595656")
+
+            m_frame.columnconfigure(1, weight=1)
+
+            i_label = tk.Label(m_frame, bg="#595656", image=im)
+            i_label.image = im
+            i_label.grid(row=1, column=1, padx=2, pady=2, sticky="w")
+
+            t_label = tk.Label(m_frame, bg="#595656",fg="white", text=from_, font="lucida 7 bold",
+                           justify="left", anchor="w")
+            t_label.grid(row=0, column=1, padx=2, sticky="w")
+
+            m_frame.pack(pady=10, padx=10, fill="x", expand=True, anchor="e")
+
+            self.canvas.update_idletasks()
+            self.canvas.yview_moveto(1.0)
     
 class Chat(tk.Tk): 
     def __init__(self, user: ClientUser, chatName, tipoChat):
@@ -423,6 +679,7 @@ class Chat(tk.Tk):
                         self.text_area.image_create(tk.END, image=self.image_tk(image))
                         self.text_area.insert(tk.END, "\n")  
                         self.text_area.config(state='disabled')
+
 
                     else:
                         self.text_area.config(state="normal")
