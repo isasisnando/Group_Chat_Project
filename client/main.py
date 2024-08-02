@@ -2,6 +2,7 @@ import threading
 import tkinter as tk
 import tkinter.scrolledtext
 import tkinter.filedialog
+from PIL import Image, ImageTk
 import socket 
 import os
 from pathlib import Path
@@ -290,6 +291,16 @@ class CreateGroup(tk.Tk):
         self.destroy()
         IntialPage(self.user)
 
+class NewChat(tk.Canvas):
+    def __init__(self, user: ClientUser, chatName, tipoChat):
+        super().__init__()
+        self.user = user
+        self.destName = chatName
+        self.tipoChat = tipoChat
+        self.running = True 
+        self.interface_done = False
+
+    
 class Chat(tk.Tk): 
     def __init__(self, user: ClientUser, chatName, tipoChat):
         super().__init__()
@@ -298,6 +309,8 @@ class Chat(tk.Tk):
         self.tipoChat = tipoChat
         self.running = True 
         self.interface_done = False
+
+        self.image_tk = ImageTk.PhotoImage
 
         self.frame = tk.Tk()
         # self.geometry("400x650")
@@ -395,17 +408,22 @@ class Chat(tk.Tk):
                         message = message.split(":")
                         filename = "./rec/" + message[1]
                         filesize = int(message[2])
-                        print(message, filename, filesize)
+
                         with open(filename, "wb") as file:
                                 c = 0
                                 while c < filesize:
                                     data = self.user.sockUser.recv(1024)
-                                    # print(data)
                                     if not (data):
                                         break
                                     file.write(data)
                                     c += len(data)
-                                    print(c, filesize)
+                        image = Image.open(filename)
+                        image = image.resize((120, 120))
+                        self.text_area.config(state='normal')
+                        self.text_area.image_create(tk.END, image=self.image_tk(image))
+                        self.text_area.insert(tk.END, "\n")  
+                        self.text_area.config(state='disabled')
+
                     else:
                         self.text_area.config(state="normal")
                         self.text_area.insert('end', message)
@@ -413,8 +431,9 @@ class Chat(tk.Tk):
                         self.text_area.config(state= "disabled")
             except ConnectionAbortedError: 
                 break
-            except:
-                print("Error")
+            except Exception as e:
+                print("Receiving error")
+                print(e)
                 self.user.sockUser.close()
                 break
 

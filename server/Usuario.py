@@ -48,7 +48,7 @@ class Usuario:
             if message[0] == "*": #if is a upload 
                 filename = "./rec/"+ message.split(":")[1]
                 file_size = os.path.getsize(filename)
-                print(filename)
+
                 with open(filename, "rb") as file:
                     c = 0 
                     while c <= file_size:
@@ -57,7 +57,7 @@ class Usuario:
                             break
                         self.sockUser.sendall(data)
                         c += len(data)
-                        print(c, file_size)
+
                 
     def start(self):
        prev_message= ""
