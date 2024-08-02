@@ -142,15 +142,16 @@ class Usuario:
 
                 case('5'):
                     # O usuario devera receber o grupo que foi convidado
-                    t = threading.Thread(target= self.serv.users[message[2]].rcvInvite, args=(message[1]))
-                    t.start()
+                    if (message[1] in self.serv.users[message[2]].groupsAsked):
+                        continue
+                    self.serv.users[message[2]].groupsAsked.add(message[1])
+                    self.serv.users[message[2]].rcvInvite(message[1])
                     
                 case('6'):
 
                     if (message[1] in self.groupsAsked):
                         continue
                     self.groupsAsked.add(message[1])
-                    print(self.groupsAsked)
                     t = threading.Thread(target= (self.serv.groups[message[1]].getAdmin()).pedidoParaEntrar, args=(message[2], message[1]))
                     t.start()
 

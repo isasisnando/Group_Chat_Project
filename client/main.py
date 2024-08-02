@@ -31,24 +31,36 @@ class ErrorMsg(tk.Tk):
 
 class Notif(tk.Tk):
 
-    def __init__(self, message):
+    def __init__(self, user : ClientUser):
         super().__init__()
 
-        self.geometry("200x200")
+        self.geometry("450x360")
 
         self.title("Notificação")
 
         self.frame = tk.Frame(self, background="green")
         self.frame.pack(fill="both", expand=True)
 
-        tk.Label(self.frame, text="Notificação: "+message, background="black", foreground="white", width=10, height=10).place(relwidth=1, y=75)
+        tk.Label(self.frame, text="Notificação: ", background="black", foreground="white", width=10, height=10).place(relwidth=1, y=75)
 
         self.mainloop()
+    
+    def trataNotif(self, message):
 
-# class NotifWtButton(tk.Tk):
+        message = message.split('@')
 
-#     def __init__(self, message):
-#         super().__init__
+        if (message[0] == '3'):
+
+            return("Convite", message[1])
+        
+        return("InReq", message[1], message[2])
+    
+    def sendAns(self, acOrNac, who, group):
+
+        if(acOrNac):
+            self.user.sockUser.send(f"7|{group}|{who}|".encode("utf-32"))
+        else:
+            self.user.sockUser.send(f"16|{group}|{who}|".encode("utf-32"))
 
 
 class Start(tk.Tk):
