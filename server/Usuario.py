@@ -157,7 +157,7 @@ class Usuario:
                             filesize = int(message[5])
                             # print(message)
                             group = self.serv.groups[message[2]]
-                            userMessage = f"*{message[3]}:{filename.split("/")[-1]}:{filesize}" #if starts with "*", its a file message
+                            userMessage = f"*{message[3]}:{filename.split('/')[-1]}:{filesize}" #if starts with "*", its a file message
                             # print(filename, filesize, userMessage)
                             with open(filename, "wb") as file:
                                 c = 0
@@ -203,21 +203,35 @@ class Usuario:
                     # O usuario devera receber o grupo que foi convidado
                     if (message[1] in self.serv.users[message[2]].groupsAsked):
                         continue
+                    if (self.serv.users[message[2]].inGrupos(message[1]) == None):
+                        self.sockUser.send("ok".encode("utf-32"))
+                    else:
+                        self.sockUser.send("esse usuario já está no grupo.".encode("utf-32"))
+                        continue
                     self.serv.users[message[2]].groupsAsked.add(message[1])
                     self.serv.users[message[2]].rcvInvite(message[1])
                     
                 case('6'):
 
+                    print('1')
                     if (message[1] in self.groupsAsked):
+                        print('2')
+                        self.sockUser.send("ok".encode("utf-32"))
+                        continue
+                    if (self.inGrupos(message[1]) == None):
+                        print('3')
+                        self.sockUser.send("ok".encode("utf-32"))
+                    else:
+                        print('4')
+                        self.sockUser.send("você já está no grupo.".encode("utf-32"))
                         continue
                     self.groupsAsked.add(message[1])
-                    t = threading.Thread(target= (self.serv.groups[message[1]].getAdmin()).pedidoParaEntrar, args=(message[2], message[1]))
-                    t.start()
+                    self.serv.groups[message[1]].getAdmin().pedidoParaEntrar(message[2], message[1])
 
                 case('7'):
-                    self.tipoConec = CONNECTION_TYPE["GROUP"]
-                    self.conected = message[1]
-                    #self.serv.users[message[2]].groupsAsked.remove(message[1])
+                    # self.tipoConec = CONNECTION_TYPE["GROUP"]
+                    # self.conected = message[1]
+                    self.serv.users[message[2]].groupsAsked.remove(message[1])
                     self.serv.groups[message[1]].addUser(self)
                     self.serv.users[message[2]].addGroup(self.findGroup(message[1]))
                 
@@ -263,6 +277,8 @@ class Usuario:
 
                     for noti in self.notifs:
                         notif += f"{noti}|"
+
+                        self.notifs.clear()
                     
                     self.sockUser.send(notif.encode("utf-32"))
                 case('14'):
@@ -295,7 +311,7 @@ class Usuario:
 
     def pedidoParaEntrar(self, whoWantsIn, wichGroup): # A gente passa ao admin quem pediu pra entrar
         
-        message = f"4@{whoWantsIn}@{wichGroup}"
+        message = f"4@{wichGroup}@{whoWantsIn}"
 
         self.notifs.append(message)
     

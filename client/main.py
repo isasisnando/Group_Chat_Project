@@ -45,24 +45,41 @@ class ErrorMsg(tk.Tk):
 
 class Notif(tk.Tk):
 
-    def __init__(self, user : ClientUser):
+    def __init__(self, user : ClientUser, mensagem):
         super().__init__()
 
         self.geometry("450x360")
 
         self.title("Notificação")
-
         self.frame = tk.Frame(self, background="green")
         self.frame.pack(fill="both", expand=True)
+        self.user = user
+        tk.Label(self.frame, text="Notificação: ", background="black", foreground="white").place(relwidth=1, y=75)
 
-        tk.Label(self.frame, text="Notificação: ", background="black", foreground="white", width=10, height=10).place(relwidth=1, y=75)
+        self.aux = self.trataNotif(mensagem)
 
-        self.mainloop()
+        if(self.aux[0] == "Convite"):
+            
+            tk.Label(self.frame, text=f"Você foi convidado para o grupo {self.aux[1]}.", background="black", foreground="white").place(relwidth=1, y=210)
+            self.nome = self.user.name
+        else:
+            tk.Label(self.frame, text=f"{self.aux[2]} pediu para entrar no grupo {self.aux[1]}.", background="black", foreground="white").place(relwidth=1, y=210)
+            self.nome = self.aux[2]
+        tk.Button(self.frame, text="Aceitar", command=self.posAns, bg="red", relief="raised", height=1, width=10).place(y=320, x=75)
+        tk.Button(self.frame,  text="Recusar", bg="red", command=self.negAns, relief="raised", height=1, width=10).place(y=320, x=200)
     
+    def posAns(self):
+        self.sendAns(True, self.nome, self.aux[1])
+        self.destroy()
+
+    def negAns(self):
+        self.sendAns(False, self.nome, self.aux[1])
+        self.destroy()
+
     def trataNotif(self, message):
 
         message = message.split('@')
-
+        print(message)
         if (message[0] == '3'):
 
             return("Convite", message[1])
@@ -72,9 +89,9 @@ class Notif(tk.Tk):
     def sendAns(self, acOrNac, who, group):
 
         if(acOrNac):
-            self.user.sockUser.send(f"7|{group}|{who}|".encode("utf-32"))
+            self.user.sockUser.send(f"7|{group}|{who}".encode("utf-32"))
         else:
-            self.user.sockUser.send(f"16|{group}|{who}|".encode("utf-32"))
+            self.user.sockUser.send(f"16|{group}|{who}".encode("utf-32"))
 
 
 class Start(tk.Tk):
@@ -146,7 +163,10 @@ class LogIn(tk.Tk):
         if(resp[0] == "login Done"):
             self.destroy()
             self.user = ClientUser(resp[1], _email, _passw, resp[2], self.sockUser)
-            IntialPage(self.user)
+
+            self.user.sockUser.send("13|".encode("utf-32"))
+            resp = self.user.sockUser.recv(1024).decode("utf-32").split('|')
+            IntialPage(self.user, resp)
             return
         
         self.destroy()
@@ -155,6 +175,7 @@ class LogIn(tk.Tk):
         LogIn()
 
 class SignUp(tk.Tk):
+
     def __init__(self):
         super().__init__()
 
@@ -221,9 +242,13 @@ class SignUp(tk.Tk):
 
 
 class IntialPage(tk.Tk):
-    def __init__(self, user: ClientUser):
+    def __init__(self, user: ClientUser, mensagens = list()):
         super().__init__()
 
+        for notif in mensagens:
+            if(notif == ""):
+                continue
+            Notif(user, notif)
         self.user = user 
 
         self.geometry("450x450")
@@ -880,7 +905,17 @@ class GroupPerfilScreen(tk.Tk):
 
         nomeGrupo = self.resp[0]
         self.user.sockUser.send(f"6|{nomeGrupo}|{self.user.getName()}".encode("utf-32"))
-    
+
+        resp = self.user.sockUser.recv(1024).decode("utf-32")
+
+        if(resp == "ok"):
+            return
+        
+        self.destroy()
+        GroupPerfilScreen(self.user, self.groupName)
+        ErrorMsg(resp)
+        return
+
     def abreInviteScreen(self):
         self.destroy()
         ConvidarUsuarios(self.user, self.groupName)
@@ -920,6 +955,15 @@ class ConvidarUsuarios(tk.Tk):
         mensagem = f"5|{self.nomeGrupo}|{who}"
 
         self.user.sockUser.send(mensagem.encode("utf-32"))
+        resp = self.user.sockUser.recv(1024).decode("utf-32")
+
+        if (resp == "ok"):
+            return
+        
+        self.destroy()
+        ConvidarUsuarios(self.user, self.nomeGrupo)
+        ErrorMsg(resp)
+        return
     
     def voltar(self):
         self.destroy()
