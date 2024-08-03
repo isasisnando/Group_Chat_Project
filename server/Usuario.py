@@ -135,6 +135,10 @@ class Usuario:
                         self.sockUser.send(past_messages.encode("utf-32"))
                     except: 
                         print("CONNECTION ERROR")
+                        self.sockUser.close()
+                        self.conected = None
+                        self.tipoConec = None
+
                 case ('1'):
                     self.conected = None
                     self.tipoConec = None
@@ -151,6 +155,7 @@ class Usuario:
                             self.serv.users[message[2]].receiveMsgUser(userMessage, self.getName())
                     except:
                         print("Sending message error")
+                        
                 case ('2U'):
                     try: 
                         if(message[1] == CONNECTION_TYPE["GROUP"]):
@@ -177,6 +182,9 @@ class Usuario:
                             pass # TODO: file messages to users channel
                     except:
                         print("Sending file message error")
+                        self.sockUser.close()
+                        self.conected = None
+                        self.tipoConec = None
                 case ('2S'):
                     filename = "./rec/"+ message[1]
                     file_size = int(message[2])
@@ -247,8 +255,7 @@ class Usuario:
 
                     self.serv.groups[message[1]] = newGrupo
                     self.groups.append(self.serv.groups[message[1]])
-                    # t = threading.Thread(target= self.serv.users[message[2]].addGroup, args=(newGrupo))
-                    # t.start()                
+
                 case('9'):
 
                     if (message[1] not in self.serv.users[message[2]].groups):
