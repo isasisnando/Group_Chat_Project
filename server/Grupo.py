@@ -18,15 +18,11 @@ class Grupo:
     def propagateMessage(self, mensagem, toPropImage = True):
         pprint.pprint(self.users)
         for user in self.users.keys():  
-            print("->"+user)
             try:
                 self.users[user].receiveMsgGrupo(mensagem, self.name, toPropImage)
             except Exception as e:
                 print("Group connection error")
                 print(e)
-                self.sockUser.close()
-                self.conected = None
-                self.tipoConec = None
 
     
     def User(self, user):

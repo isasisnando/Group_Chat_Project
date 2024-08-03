@@ -46,7 +46,6 @@ class Usuario:
             self.sockUser.send(message.encode("utf-32"))
     
     def receiveMsgGrupo(self, message, whoSent, toPropImage = True):
-
         if (self.tipoConec == CONNECTION_TYPE["GROUP"] and self.conected == whoSent):
             self.sockUser.send(message.encode("utf-32"))
             if message[0] == "*" and toPropImage: #if is a upload 
