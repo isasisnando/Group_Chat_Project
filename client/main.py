@@ -685,8 +685,6 @@ class NewChat(tk.Canvas):
                                         break
                                     file.write(data)
                                     c += len(data)
-
-                        print(filename)
                         if(filename.endswith(".mp3")):
                             data_dict = {
                                 "type": DATA_TYPE["AUDIO"],
@@ -877,6 +875,8 @@ class GroupPerfilScreen(tk.Tk):
         else:
             tk.Button(self.frame, text="Enviar convite", command=self.abreInviteScreen, bg="red", relief="raised", height=1, width=10).place(y=250, x=75)
         tk.Button(self.frame,  text="Abrir o chat", bg="red", command=self.abreGroup, relief="raised", height=1, width=10).place(y=250, x=200)
+
+        self.frame.mainloop()
 
     def abreGroup(self):
 
