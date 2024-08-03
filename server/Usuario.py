@@ -119,6 +119,7 @@ class Usuario:
 
                         past_messages = ""
                         if(message[1] == CONNECTION_TYPE["GROUP"]):
+                            print(message)
                             group = self.findGroup(message[2])
                             group.propagateMessage(f"{self.getName()} joined this chat\n", False)
                             for message in group.messages:
@@ -231,6 +232,8 @@ class Usuario:
                 case('7'):
                     # self.tipoConec = CONNECTION_TYPE["GROUP"]
                     # self.conected = message[1]
+                    print(message)
+                    print("entrou aqui")
                     self.serv.users[message[2]].groupsAsked.remove(message[1])
                     self.serv.groups[message[1]].addUser(self)
                     self.serv.users[message[2]].addGroup(self.findGroup(message[1]))
@@ -278,7 +281,7 @@ class Usuario:
                     for noti in self.notifs:
                         notif += f"{noti}|"
 
-                        self.notifs.clear()
+                    self.notifs.clear()
                     
                     self.sockUser.send(notif.encode("utf-32"))
                 case('14'):
@@ -304,15 +307,15 @@ class Usuario:
     def rcvInvite(self, group):
 
         # 3 implica um convite
-
         mensagem = f"3@{group}@"
+        print(mensagem)
         self.groupsAsked.add(group)
         self.notifs.append(mensagem)
 
     def pedidoParaEntrar(self, whoWantsIn, wichGroup): # A gente passa ao admin quem pediu pra entrar
         
         message = f"4@{wichGroup}@{whoWantsIn}"
-
+        print(message)
         self.notifs.append(message)
     
     def sairDeUmGrupo(self, grupo):

@@ -6,6 +6,7 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 import socket 
 import os
+import time
 import pygame
 from pathlib import Path
 from ClientUser import ClientUser
@@ -249,6 +250,7 @@ class IntialPage(tk.Tk):
             if(notif == ""):
                 continue
             Notif(user, notif)
+            
         self.user = user 
 
         self.geometry("450x450")
@@ -419,7 +421,7 @@ class Chat(tk.Tk):
             self.text_area.config(state= "disabled")
 
     def connectToGroup(self):
-        self.user.acceptInGroup(self.destName)
+        # self.user.acceptInGroup(self.destName)
         messages = self.user.openConection(CONNECTION_TYPE["GROUP"], self.destName)
         for message in messages: 
             self.text_area.config(state="normal")
@@ -621,7 +623,7 @@ class NewChat(tk.Canvas):
             self.text_area.config(state= "disabled")
 
     def connectToGroup(self):
-        self.user.acceptInGroup(self.destName)
+        # self.user.acceptInGroup(self.destName)
         messages = self.user.openConection(CONNECTION_TYPE["GROUP"], self.destName)
         for message in messages: 
             self.unpackMessages(message)
@@ -656,7 +658,7 @@ class NewChat(tk.Canvas):
                 if self.interface_done:
                     message = self.user.sockUser.recv(1024)
                     message = message.decode("utf-32")
-                    
+                    print(message)
                     if ("|" in message):
                         message = message.split("|")
                         for m in message:
@@ -888,7 +890,7 @@ class GroupPerfilScreen(tk.Tk):
             ErrorMsg(resp)
             return
 
-        Chat(self.user, self.resp[0], CONNECTION_TYPE["GROUP"]) 
+        NewChat(self, self.frame, self.user, self.groupName, CONNECTION_TYPE["GROUP"])
     
     def outGroup(self):
 
