@@ -331,10 +331,15 @@ class IntialPage(tk.Tk):
         CreateGroup(self.user)
 
     def stop(self):
-        message = f"{self.user.getName()} has left the chat"
-        self.user.sockUser.send(message.encode("utf-32"))
-        self.user.closeConection()
-        self.user.sockUser.close()
+        try:
+            message = f"{self.user.getName()} has left the chat"
+            self.user.sockUser.send(message.encode("utf-32"))
+            self.user.closeConection()
+            self.user.sockUser.close()
+        except Exception as e:
+            print(e)
+            print("uai")
+            return
 
 class CreateGroup(tk.Tk):
     def __init__(self, user: ClientUser):
@@ -625,10 +630,7 @@ class NewChat(tk.Canvas):
     def connectToUser(self):
         messages = self.user.openConection(CONNECTION_TYPE["CHANNEL"], self.destName)
         for message in messages: 
-            self.text_area.config(state="normal")
-            self.text_area.insert('end', message)
-            self.text_area.yview('end')
-            self.text_area.config(state= "disabled")
+            self.unpackMessages(message)
 
     def connectToGroup(self):
         # self.user.acceptInGroup(self.destName)
@@ -842,13 +844,14 @@ class PerfilScreen(tk.Tk):
         tk.Label(self.frame, text=self.resp[1], background="#4EABB0",foreground="#006666", font=("Arial", 14)).place(y=140, x=95)
         tk.Label(self.frame, text=self.resp[2], background="#4EABB0",foreground="#006666", font=("Arial", 14)).place(y=205, x=80)
         tk.Button(self.frame, command=self.openChat, text="Abrir o chat", bg="red", relief="raised", height=1, width=10).place(y=250, x=150)
+
+        self.frame.mainloop()
     
     def openChat(self):
 
         self.user.sockUser.send((f"4|{self.resp[0]}").encode("utf-32"))
 
-        self.destroy()
-        Chat(self.user, self.resp[0], "CHANNEL")
+        NewChat(self, self.frame, self.user, self.resp[0], CONNECTION_TYPE["CHANNEL"])
         pass
 
 class GroupPerfilScreen(tk.Tk):
