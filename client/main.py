@@ -306,6 +306,8 @@ class IntialPage(tk.Tk):
         self.t_groups_button_dropdown = tk.Button(self.frame, background="#FFFFFF",text="Escolher grupo", command=self.choose_t_group)
         self.t_groups_button_dropdown.place(x=230, y=280)
 
+        self.protocol("WM_DELETE_WINDOW", self.stop)
+
         self.frame.mainloop()
 
     def choose_group(self):
@@ -327,6 +329,12 @@ class IntialPage(tk.Tk):
     def create_group(self):
         self.destroy()
         CreateGroup(self.user)
+
+    def stop(self):
+        message = f"{self.user.getName()} has left the chat"
+        self.user.sockUser.send(message.encode("utf-32"))
+        self.user.closeConection()
+        self.user.sockUser.close()
 
 class CreateGroup(tk.Tk):
     def __init__(self, user: ClientUser):
@@ -512,9 +520,9 @@ class NewChat(tk.Canvas):
         self.first_frame.pack_forget()
         
         self.parent = parent
-        self.parent.bind('<Return>', lambda e: print("É O CODAS NTJ"))
-
+        # self.parent.bind('<Return>')
         self.parent.protocol("WM_DELETE_WINDOW", self.stop)
+
 
         screen_width, screen_height = self.winfo_screenwidth(), self.winfo_screenheight()
 
@@ -645,12 +653,11 @@ class NewChat(tk.Canvas):
     def stop(self):
         self.running = False
         self.parent.destroy()
-        print("Fluminense")
         message = f"{self.user.getName()} has left the chat"
         self.user.sockUser.send(message.encode("utf-32"))
-        self.input_area.delete('1.0', 'end')
         self.user.closeConection()
-        IntialPage(self.user)
+        self.user.sockUser.close()
+        Start()
 
     def receive(self):
         while self.running:
