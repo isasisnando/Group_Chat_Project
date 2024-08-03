@@ -59,9 +59,6 @@ class Server:
     
                 0|email|name|password|cep
                 1|email|password
-                
-                Acredito q seria interessante deixar a resposta de um convite ou pedido
-                privadas
 
             """
             message = client.recv(1024).decode("utf-32")
@@ -72,8 +69,7 @@ class Server:
             
                 case ('1'):
 
-                    t = threading.Thread(target= self.login, args=(message, client, address))
-                    t.start()
+                    self.login(message, client, address)
                 case ('0'):
 
                     if (message[1] in self.users.keys()):
@@ -81,8 +77,7 @@ class Server:
                         client.send(mensagemExistsUserEmail.encode("utf-32"))
                         continue
                     client.send(okMessage.encode("utf-32"))
-                    t = threading.Thread(target= self.sign_up, args=(message, client, address))
-                    t.start()
+                    self.sign_up(message, client, address)
 
 
     def start(self):
