@@ -43,7 +43,12 @@ class Usuario:
         self.usersChannel[whoSent].append(message)
 
         if (self.tipoConec == CONNECTION_TYPE["CHANNEL"] and self.conected == whoSent):
-            self.sockUser.send(message.encode("utf-32"))
+            try:
+                self.sockUser.send(message.encode("utf-32"))
+            except Exception as e:
+                print(e)
+                self.conected = None
+                self.tipoConec = None
     
     def receiveMsgGrupo(self, message, whoSent, toPropImage = True):
 
