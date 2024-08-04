@@ -38,13 +38,26 @@ class Usuario:
         self.tipoConec = CONNECTION_TYPE["NONE"]
         self.sockUser = sockUser 
     
-    def receiveMsgUser(self, message, whoSent):
+    def receiveMsgUser(self, message, whoSent, toPropImage = True):
 
         self.usersChannel[whoSent].append(message)
 
         if (self.tipoConec == CONNECTION_TYPE["CHANNEL"] and self.conected == whoSent):
             try:
                 self.sockUser.send(message.encode("utf-32"))
+                if message[0] == "*" and toPropImage: #if is a upload 
+                    print("É O CODAS")
+                    filename = "./rec/"+ message.split(":")[1]
+                    file_size = os.path.getsize(filename)
+
+                    with open(filename, "rb") as file:
+                        c = 0 
+                        while c <= file_size:
+                            data = file.read(1024)
+                            if not (data):
+                                break
+                            self.sockUser.sendall(data)
+                            c += len(data)
             except Exception as e:
                 print(e)
                 self.conected = None
@@ -79,7 +92,7 @@ class Usuario:
             except:
                 pass
             
-            if (mensagem == "" or (mensagem == prev_message and (mensagem.startswith("2U") or mensagem.startswith("0") or mensagem.startswith("2") or mensagem.startswith("1|")))) :
+            if (mensagem == "" or (mensagem == prev_message and (mensagem.startswith("2U") or mensagem.startswith("2") or mensagem.startswith("0") or mensagem.startswith("1|")))) :
                 continue
 
             prev_message = mensagem
@@ -88,7 +101,7 @@ class Usuario:
                 0 -> open connection
                 1 -> close
                 2 -> message for group/channel
-                2U -> message as file/video/audio for group/channel
+                2U -> message as file/audio for group/channel
                 3 -> logout
                 4 -> quer adicionar um novo usuario
                 5 -> manda convite
@@ -152,6 +165,9 @@ class Usuario:
                     self.conected = None
                     self.tipoConec = None
                 case ('2'):
+                    if (self.conected == None): 
+                        continue
+
                     try: 
                         if(message[1] == CONNECTION_TYPE["GROUP"]):
                             group = self.serv.groups[message[2]]
@@ -192,7 +208,25 @@ class Usuario:
                                 self.conected = None
                                 self.tipoConec = None
                         elif(message[1] == CONNECTION_TYPE["CHANNEL"]):
-                            pass # TODO: file messages to users channel
+                            filename= "./rec/" + message[4].split("/")[-1]
+                            filesize = int(message[5])
+                            userMessage = f"*{message[3]}:{filename.split('/')[-1]}:{filesize}" #if starts with "*", its a file message
+                            try:
+                                with open(filename, "wb") as file:
+                                    c = 0
+                                    while c < filesize:
+                                            data = self.sockUser.recv(1024)
+                                            if (not data) :
+                                                break
+                                            file.write(data)
+                                            c +=  len(data)
+                                self.receiveMsgUser(userMessage, message[2], True)
+                                self.serv.users[message[2]].receiveMsgUser(userMessage, self.getName(),True)
+                            except:
+                                print("Download error")
+                                self.sockUser.close()
+                                self.conected = None
+                                self.tipoConec = None
                     except:
                         print("Sending file message error")
                         self.sockUser.close()
