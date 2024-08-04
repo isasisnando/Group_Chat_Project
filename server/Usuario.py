@@ -111,6 +111,7 @@ class Usuario:
                 9 -> sai Grupo
                 11 -> pede Users
                 10 -> pede Groups
+                10S -> pede os Groups que o user participa
                 12 -> Quero infos desse usuario
                 13 -> take notifications
                 14 -> take Group Name
@@ -201,7 +202,7 @@ class Usuario:
                                             file.write(data)
                                             c +=  len(data)
                                 group.messages.append(userMessage)
-                                group.propagateMessage(userMessage)
+                                group.propagateMessage(userMessage, True)
                             except:
                                 print("Download error")
                                 self.sockUser.close()
@@ -311,6 +312,12 @@ class Usuario:
                         groupsGrl += f"{grupo}|"
                     
                     self.sockUser.send(groupsGrl.encode("utf-32"))
+                case('10S'):
+                    myGroups = ""
+                    for grupo in self.serv.users[self.getName()].groups:
+                        myGroups += f"{grupo.name}|"
+                    
+                    self.sockUser.send(myGroups.encode("utf-32"))
                 case('11'):
                     usersGrl = ""
                     for user in self.serv.users.keys():

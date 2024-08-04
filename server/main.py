@@ -15,6 +15,7 @@ class Server:
         
         self.usersLogin = dict() # dict<email, senha>
         self.users = dict() # dict<name, user>
+        self.usersByEmail = dict() # dict<name, user>
         self.groups = dict() # dict<nome, group>
 
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -26,7 +27,7 @@ class Server:
         if message[1] in self.usersLogin.keys():
             if (message[2] == self.usersLogin[message[1]]):
 
-                user = self.users[message[1]]
+                user = self.usersByEmail[message[1]]
                 user.ipv4 = address
                 user.sockUser = client
                 
@@ -44,6 +45,7 @@ class Server:
     def sign_up(self, message, client, address):
         user = Usuario(message[2], message[1], message[3], message[4], address, client, self)
         self.users[user.getName()] = user
+        self.usersByEmail[user.getEmail()] = user
         self.usersLogin[user.getEmail()] = user.getPassw()
         t = threading.Thread(target= user.start, args=())
         t.start()

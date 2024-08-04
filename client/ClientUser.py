@@ -79,6 +79,10 @@ class ClientUser:
         self.sockUser.send(f"10|".encode("utf-32"))
         return (list(self.sockUser.recv(1024).decode("utf-32").split('|')))
     
+    def takeMyGroups(self):
+        self.sockUser.send(f"10S|".encode("utf-32"))
+        return (list(self.sockUser.recv(1024).decode("utf-32").split('|')))
+    
     def takeUsers(self):
         self.sockUser.send(f"11|".encode("utf-32"))
         return (list(self.sockUser.recv(1024).decode("utf-32").split('|')))   
