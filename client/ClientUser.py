@@ -11,10 +11,8 @@ CONNECTION_TYPE = {
 
 class ClientUser:
 
-    # Isso aqui seria interessante pra encapsular melhor
-    groups = dict()
-
     def __init__(self, _name, _email, _passw, _cep, _sock = None):
+        self.groups = dict()
         self.name, self.email, self.passw, self.cep, self.sockUser = _name, _email, _passw, _cep, _sock
     
     def getName(self):
