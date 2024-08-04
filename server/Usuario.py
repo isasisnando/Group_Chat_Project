@@ -49,6 +49,7 @@ class Usuario:
                 print(e)
                 self.conected = None
                 self.tipoConec = None
+                return
     
     def receiveMsgGrupo(self, message, whoSent, toPropImage = True):
 
@@ -79,7 +80,7 @@ class Usuario:
             except:
                 pass
             
-            if (mensagem == "" or (mensagem == prev_message and mensagem.startswith("2U"))) :
+            if (mensagem == "" or (mensagem == prev_message and (mensagem.startswith("2U") or mensagem.startswith("0")))) :
                 continue
 
             prev_message = mensagem
@@ -144,7 +145,6 @@ class Usuario:
                     except Exception as e: 
                         print("CONNECTION ERROR")
                         print(e)
-                        breakpoint()
                         self.sockUser.close()
                         self.conected = None
                         self.tipoConec = None
