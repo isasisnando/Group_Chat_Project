@@ -79,7 +79,7 @@ class Usuario:
             except:
                 pass
             
-            if (mensagem == "" or (mensagem == prev_message and (mensagem.startswith("2U") or mensagem.startswith("0")))) :
+            if (mensagem == "" or (mensagem == prev_message and (mensagem.startswith("2U") or mensagem.startswith("0") or mensagem.startswith("2") or mensagem.startswith("1|")))) :
                 continue
 
             prev_message = mensagem
@@ -120,7 +120,7 @@ class Usuario:
            """
 
             message = mensagem.split("|")
-
+            print(message)
             match message[0]:
                 case ('0'):
                     try:
@@ -173,10 +173,8 @@ class Usuario:
                         if(message[1] == CONNECTION_TYPE["GROUP"]):
                             filename= "./rec/" + message[4].split("/")[-1]
                             filesize = int(message[5])
-                            # print(message)
                             group = self.serv.groups[message[2]]
                             userMessage = f"*{message[3]}:{filename.split('/')[-1]}:{filesize}" #if starts with "*", its a file message
-                            # print(filename, filesize, userMessage)
                             try:
                                 with open(filename, "wb") as file:
                                     c = 0
@@ -236,17 +234,12 @@ class Usuario:
                     self.serv.users[message[2]].rcvInvite(message[1])
                     
                 case('6'):
-
-                    print('1')
                     if (message[1] in self.groupsAsked):
-                        print('2')
                         self.sockUser.send("ok".encode("utf-32"))
                         continue
                     if (self.inGrupos(message[1]) == None):
-                        print('3')
                         self.sockUser.send("ok".encode("utf-32"))
                     else:
-                        print('4')
                         self.sockUser.send("você já está no grupo.".encode("utf-32"))
                         continue
                     self.groupsAsked.add(message[1])
@@ -255,7 +248,6 @@ class Usuario:
                 case('7'):
                     # self.tipoConec = CONNECTION_TYPE["GROUP"]
                     # self.conected = message[1]
-                    print(message)
                     self.serv.users[message[2]].groupsAsked.remove(message[1])
                     self.serv.groups[message[1]].addUser(self.serv.users[message[2]])
                     self.serv.users[message[2]].addGroup(self.findGroup(message[1]))
@@ -329,28 +321,19 @@ class Usuario:
 
         # 3 implica um convite
         mensagem = f"3@{group}@"
-        print(mensagem)
         self.groupsAsked.add(group)
         self.notifs.append(mensagem)
 
     def pedidoParaEntrar(self, whoWantsIn, wichGroup): # A gente passa ao admin quem pediu pra entrar
-        
         message = f"4@{wichGroup}@{whoWantsIn}"
-        print(message)
         self.notifs.append(message)
     
     def sairDeUmGrupo(self, grupo):
-
         self.groups.remove(grupo)
-        print(self.groups)
-        # se a gente tivesse mais grupos usar um dict seria melhor
-        # para a complexidade
-
         grupo.propagateMessage(f"{self.name} saiu.")
 
     def addGroup(self, groupStuff): # esse groupStuff é um objeto Grupo
         self.groups.append(groupStuff)
-        print(self.groups)
         return
 
     def findGroup(self, groupName):
@@ -362,7 +345,6 @@ class Usuario:
 
         for grupo in self.groups:
             if grupo.name == groupName:
-                print(self.groups)
                 return grupo
         
         return None

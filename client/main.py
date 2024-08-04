@@ -80,7 +80,7 @@ class Notif(tk.Tk):
     def trataNotif(self, message):
 
         message = message.split('@')
-        print(message)
+        print("->"+ message)
         if (message[0] == '3'):
 
             return("Convite", message[1])
@@ -514,12 +514,12 @@ class NewChat(tk.Canvas):
 
     def stop(self):
         self.running = False
+        self.interface_done = False
+        self.input_area.delete('1.0', 'end')
         self.parent.destroy()
-        message = f"{self.user.getName()} has left the chat"
-        self.user.sockUser.send(message.encode("utf-32"))
         self.user.closeConection()
-        print("A")
-        IntialPage(self.user)
+        self.user.sockUser.close()
+
 
     def receive(self):
         while self.running:
@@ -527,7 +527,6 @@ class NewChat(tk.Canvas):
                 if self.interface_done:
                     message = self.user.sockUser.recv(1024)
                     message = message.decode("utf-32")
-                    print(message)
                     if ("|" in message):
                         message = message.split("|")
                         for m in message:
@@ -638,7 +637,6 @@ class NewChat(tk.Canvas):
             self.canvas.update_idletasks()
             self.canvas.yview_moveto(1.0)
         elif (data_type == DATA_TYPE["AUDIO"]):
-            print(message)
             pygame.mixer.init()
             self.is_playing = False
             self.btn_text = "TOCAR"
