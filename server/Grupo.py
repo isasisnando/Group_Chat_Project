@@ -1,5 +1,6 @@
 from socket import *
 import threading
+import pprint
 
 class Grupo:
 
@@ -15,8 +16,13 @@ class Grupo:
 
 
     def propagateMessage(self, mensagem, toPropImage = True):
+        pprint.pprint(self.users)
         for user in self.users.keys():  
-            self.users[user].receiveMsgGrupo(mensagem, self.name, toPropImage)
+            try:
+                self.users[user].receiveMsgGrupo(mensagem, self.name, toPropImage)
+            except Exception as e:
+                print("Group connection error")
+                print(e)
 
     
     def User(self, user):

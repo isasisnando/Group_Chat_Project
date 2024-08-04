@@ -11,10 +11,8 @@ CONNECTION_TYPE = {
 
 class ClientUser:
 
-    # Isso aqui seria interessante pra encapsular melhor
-    groups = dict()
-
     def __init__(self, _name, _email, _passw, _cep, _sock = None):
+        self.groups = dict()
         self.name, self.email, self.passw, self.cep, self.sockUser = _name, _email, _passw, _cep, _sock
     
     def getName(self):
@@ -32,72 +30,6 @@ class ClientUser:
         mensagem = "4|" + who + '|'
         self.sockUser.send(mensagem.encode("utf-32"))
          # A gente tem q fazer close aqui né?
-
-    def rcvServer(self):
-
-        mensagemSrvr = self.sockUser.rcv(1024).decode("utf-32")
-
-        match str(mensagemSrvr):
-            case ("Já existe usuario com esse email"):
-                
-                return("Já existe usuario com esse email")
-                # tentou criar uma conta com o email q ja usou
-
-            case ("Nome de Grupo já existe"):
-                return("Nome de Grupo já existe")
-                # tentou criar nome de grupo q ja existe
-            case ("canal com o usuario nao encontrado"):
-
-                # tenta se comunicar com alguem q vc n add
-                return("canal com o usuario nao encontrado")
-            case ("Você não está autorizado a fazer isso"):
-
-                # tentou convidar alguem
-                return("Você não está autorizado a fazer isso")
-            case ("Usuario nao encontrado"):
-
-                # tentou adicionar alguem q n existe
-                return("Usuario nao encontrado")
-            case ("voce nao esta no grupo"):
-
-                # tentou mandar algo para um grupo q ele n ta
-                return ("voce nao esta no grupo")
-
-        mensagemSplitada = mensagemSrvr.split('@')
-
-        match mensagemSplitada[0]:
-            case ('1'):
-                # Passa pro front como a mensagem chegou e se é de usuario
-
-                realMsg = mensagemSplitada[3]
-
-                for i in range(4, len(mensagemSplitada)):
-
-                    realMsg += '@' + mensagemSplitada[i]
-
-                return("usuario", mensagemSplitada[1], realMsg)
-            case ('2'):
-
-                realMsg = mensagemSplitada[3]
-
-                for i in range(4, len(mensagemSplitada)):
-
-                    realMsg += '@' + mensagemSplitada[i]
-
-                # Grupo, quem enviou, de qual grupo, msg
-
-                return("grupo", mensagemSplitada[1], mensagemSplitada[2], realMsg)
-            case ('3'):
-                return("Aceita grupo?", mensagemSplitada[1])
-            case ('4'):
-                return("Pode entrar?", mensagemSplitada[1])
-            case ('5'):
-                return("Perdeu Acesso a esse grupo", mensagemSplitada[1])
-            case ('6'):
-                return("Adicionou esse usuario", mensagemSplitada[1])
-            case ('7'):
-                return("Voce entrou no grupo", mensagemSplitada[1])
-        # Tratar as mensagens de acordo com o estabelecido pelo servidor
     
     def sendMsgUser(self, dest, user, msg):
         mensagem = f"2|CHANNEL|{dest}|{user}|{msg}"
@@ -107,12 +39,10 @@ class ClientUser:
         mensagem = f"2|GROUP|{dest}|{user}|{msg}"
         self.sockUser.send(mensagem.encode("utf-32"))
 
-    def sendUploadUser(self, dest, user, filename):
-        return #:)
     
-    def sendUploadGroup(self, dest, user,filename):
+    def sendUpload(self, dest, user,filename, type = CONNECTION_TYPE["GROUP"]):
         file_size = os.path.getsize(filename)
-        mensagem = f"2U|GROUP|{dest}|{user}|{filename}|{file_size}"
+        mensagem = f"2U|{type}|{dest}|{user}|{filename}|{file_size}"
         self.sockUser.send(mensagem.encode("utf-32"))
         
         with open(filename, "rb") as file:
@@ -173,4 +103,3 @@ class ClientUser:
         return image
 
 
-    

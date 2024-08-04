@@ -1,7 +1,6 @@
 from socket import *
 import os 
 from Grupo import Grupo
-import threading
 mensagemNotFoundUser = "canal com o usuario nao encontrado"
 mensagemNotFoundGrupo = "voce nao esta no grupo"
 mensagemUnauthorized = "Você não está autorizado a fazer isso"
@@ -28,22 +27,44 @@ class Usuario:
         self.groups = list()
         self.usersChannel = dict() # dict<name, msgs>
         self.notifs = list() 
-        self.name, self.email, self.passw, self.cep, self.ipv4 = name, email, passw, cep, ipv4
+        self.name= name
+        self.email= email
+        self.passw= passw
+        self.cep= cep
+        self.ipv4= ipv4
         self.serv = server
 
         self.conected = None
         self.tipoConec = CONNECTION_TYPE["NONE"]
         self.sockUser = sockUser 
     
-    def receiveMsgUser(self, message, whoSent):
+    def receiveMsgUser(self, message, whoSent, toPropImage = True):
 
         self.usersChannel[whoSent].append(message)
 
         if (self.tipoConec == CONNECTION_TYPE["CHANNEL"] and self.conected == whoSent):
-            self.sockUser.send(message.encode("utf-32"))
+            try:
+                self.sockUser.send(message.encode("utf-32"))
+                if message[0] == "*" and toPropImage: #if is a upload 
+                    print("É O CODAS")
+                    filename = "./rec/"+ message.split(":")[1]
+                    file_size = os.path.getsize(filename)
+
+                    with open(filename, "rb") as file:
+                        c = 0 
+                        while c <= file_size:
+                            data = file.read(1024)
+                            if not (data):
+                                break
+                            self.sockUser.sendall(data)
+                            c += len(data)
+            except Exception as e:
+                print(e)
+                self.conected = None
+                self.tipoConec = None
+                return
     
     def receiveMsgGrupo(self, message, whoSent, toPropImage = True):
-
         if (self.tipoConec == CONNECTION_TYPE["GROUP"] and self.conected == whoSent):
             self.sockUser.send(message.encode("utf-32"))
             if message[0] == "*" and toPropImage: #if is a upload 
@@ -59,6 +80,8 @@ class Usuario:
                             break
                         self.sockUser.sendall(data)
                         c += len(data)
+            
+
 
                 
     def start(self):
@@ -69,7 +92,7 @@ class Usuario:
             except:
                 pass
             
-            if (mensagem == "" or (mensagem == prev_message and mensagem.startswith("2U"))) :
+            if (mensagem == "" or (mensagem == prev_message and (mensagem.startswith("2U") or mensagem.startswith("2") or mensagem.startswith("0") or mensagem.startswith("1|")))) :
                 continue
 
             prev_message = mensagem
@@ -78,7 +101,7 @@ class Usuario:
                 0 -> open connection
                 1 -> close
                 2 -> message for group/channel
-                2U -> message as file/video/audio for group/channel
+                2U -> message as file/audio for group/channel
                 3 -> logout
                 4 -> quer adicionar um novo usuario
                 5 -> manda convite
@@ -110,13 +133,12 @@ class Usuario:
            """
 
             message = mensagem.split("|")
-
+            print(message)
             match message[0]:
                 case ('0'):
                     try:
                         self.tipoConec = message[1]
                         self.conected = message[2]
-
                         past_messages = ""
                         if(message[1] == CONNECTION_TYPE["GROUP"]):
                             group = self.findGroup(message[2])
@@ -132,12 +154,20 @@ class Usuario:
                         if(past_messages == ""):
                             past_messages = " " 
                         self.sockUser.send(past_messages.encode("utf-32"))
-                    except: 
+                    except Exception as e: 
                         print("CONNECTION ERROR")
+                        print(e)
+                        self.sockUser.close()
+                        self.conected = None
+                        self.tipoConec = None
+
                 case ('1'):
                     self.conected = None
                     self.tipoConec = None
                 case ('2'):
+                    if (self.conected == None): 
+                        continue
+
                     try: 
                         if(message[1] == CONNECTION_TYPE["GROUP"]):
                             group = self.serv.groups[message[2]]
@@ -150,32 +180,58 @@ class Usuario:
                             self.serv.users[message[2]].receiveMsgUser(userMessage, self.getName())
                     except:
                         print("Sending message error")
+                        self.sockUser.close()
+                        self.conected = None
+                        self.tipoConec = None
+                        
                 case ('2U'):
                     try: 
                         if(message[1] == CONNECTION_TYPE["GROUP"]):
                             filename= "./rec/" + message[4].split("/")[-1]
                             filesize = int(message[5])
-                            # print(message)
                             group = self.serv.groups[message[2]]
-                            userMessage = f"*{message[3]}:{filename.split("/")[-1]}:{filesize}" #if starts with "*", its a file message
-                            # print(filename, filesize, userMessage)
-                            with open(filename, "wb") as file:
-                                c = 0
-                                while c < filesize:
-                                    try:
-                                        data = self.sockUser.recv(1024)
-                                        if (not data) :
-                                            break
-                                        file.write(data)
-                                        c +=  len(data)
-                                    except:
-                                        print("Download error")
-                            group.messages.append(userMessage)
-                            group.propagateMessage(userMessage)
+                            userMessage = f"*{message[3]}:{filename.split('/')[-1]}:{filesize}" #if starts with "*", its a file message
+                            try:
+                                with open(filename, "wb") as file:
+                                    c = 0
+                                    while c < filesize:
+                                            data = self.sockUser.recv(1024)
+                                            if (not data) :
+                                                break
+                                            file.write(data)
+                                            c +=  len(data)
+                                group.messages.append(userMessage)
+                                group.propagateMessage(userMessage)
+                            except:
+                                print("Download error")
+                                self.sockUser.close()
+                                self.conected = None
+                                self.tipoConec = None
                         elif(message[1] == CONNECTION_TYPE["CHANNEL"]):
-                            pass # TODO: file messages to users channel
+                            filename= "./rec/" + message[4].split("/")[-1]
+                            filesize = int(message[5])
+                            userMessage = f"*{message[3]}:{filename.split('/')[-1]}:{filesize}" #if starts with "*", its a file message
+                            try:
+                                with open(filename, "wb") as file:
+                                    c = 0
+                                    while c < filesize:
+                                            data = self.sockUser.recv(1024)
+                                            if (not data) :
+                                                break
+                                            file.write(data)
+                                            c +=  len(data)
+                                self.receiveMsgUser(userMessage, message[2], True)
+                                self.serv.users[message[2]].receiveMsgUser(userMessage, self.getName(),True)
+                            except:
+                                print("Download error")
+                                self.sockUser.close()
+                                self.conected = None
+                                self.tipoConec = None
                     except:
                         print("Sending file message error")
+                        self.sockUser.close()
+                        self.conected = None
+                        self.tipoConec = None
                 case ('2S'):
                     filename = "./rec/"+ message[1]
                     file_size = int(message[2])
@@ -203,22 +259,31 @@ class Usuario:
                     # O usuario devera receber o grupo que foi convidado
                     if (message[1] in self.serv.users[message[2]].groupsAsked):
                         continue
+                    if (self.serv.users[message[2]].inGrupos(message[1]) == None):
+                        self.sockUser.send("ok".encode("utf-32"))
+                    else:
+                        self.sockUser.send("esse usuario já está no grupo.".encode("utf-32"))
+                        continue
                     self.serv.users[message[2]].groupsAsked.add(message[1])
                     self.serv.users[message[2]].rcvInvite(message[1])
                     
                 case('6'):
-
                     if (message[1] in self.groupsAsked):
+                        self.sockUser.send("ok".encode("utf-32"))
+                        continue
+                    if (self.inGrupos(message[1]) == None):
+                        self.sockUser.send("ok".encode("utf-32"))
+                    else:
+                        self.sockUser.send("você já está no grupo.".encode("utf-32"))
                         continue
                     self.groupsAsked.add(message[1])
-                    t = threading.Thread(target= (self.serv.groups[message[1]].getAdmin()).pedidoParaEntrar, args=(message[2], message[1]))
-                    t.start()
+                    self.serv.groups[message[1]].getAdmin().pedidoParaEntrar(message[2], message[1])
 
                 case('7'):
-                    self.tipoConec = CONNECTION_TYPE["GROUP"]
-                    self.conected = message[1]
-                    #self.serv.users[message[2]].groupsAsked.remove(message[1])
-                    self.serv.groups[message[1]].addUser(self)
+                    # self.tipoConec = CONNECTION_TYPE["GROUP"]
+                    # self.conected = message[1]
+                    self.serv.users[message[2]].groupsAsked.remove(message[1])
+                    self.serv.groups[message[1]].addUser(self.serv.users[message[2]])
                     self.serv.users[message[2]].addGroup(self.findGroup(message[1]))
                 
                 case('8'):
@@ -230,8 +295,7 @@ class Usuario:
 
                     self.serv.groups[message[1]] = newGrupo
                     self.groups.append(self.serv.groups[message[1]])
-                    # t = threading.Thread(target= self.serv.users[message[2]].addGroup, args=(newGrupo))
-                    # t.start()                
+
                 case('9'):
 
                     if (message[1] not in self.serv.users[message[2]].groups):
@@ -263,6 +327,8 @@ class Usuario:
 
                     for noti in self.notifs:
                         notif += f"{noti}|"
+
+                    self.notifs.clear()
                     
                     self.sockUser.send(notif.encode("utf-32"))
                 case('14'):
@@ -288,29 +354,20 @@ class Usuario:
     def rcvInvite(self, group):
 
         # 3 implica um convite
-
         mensagem = f"3@{group}@"
         self.groupsAsked.add(group)
         self.notifs.append(mensagem)
 
     def pedidoParaEntrar(self, whoWantsIn, wichGroup): # A gente passa ao admin quem pediu pra entrar
-        
-        message = f"4@{whoWantsIn}@{wichGroup}"
-
+        message = f"4@{wichGroup}@{whoWantsIn}"
         self.notifs.append(message)
     
     def sairDeUmGrupo(self, grupo):
-
         self.groups.remove(grupo)
-        print(self.groups)
-        # se a gente tivesse mais grupos usar um dict seria melhor
-        # para a complexidade
-
         grupo.propagateMessage(f"{self.name} saiu.")
 
     def addGroup(self, groupStuff): # esse groupStuff é um objeto Grupo
         self.groups.append(groupStuff)
-        print(self.groups)
         return
 
     def findGroup(self, groupName):
@@ -322,7 +379,6 @@ class Usuario:
 
         for grupo in self.groups:
             if grupo.name == groupName:
-                print(self.groups)
                 return grupo
         
         return None
