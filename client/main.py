@@ -368,12 +368,20 @@ class CreateGroup(tk.Tk):
         self.submit = tk.Button(self.frame, command=self.create_group, text="Criar Grupo", bg="red", relief="raised", height=1, width=10)
         self.submit.place(x=155, y=210)
 
+        self.protocol("WM_DELETE_WINDOW", self.stop)
+
 
     def create_group(self):
         message = f"8|{self.group_name_input.get()}|{self.user.getName()}"
         self.user.sockUser.send(message.encode("utf-32"))
         self.destroy()
+        self.frame.destroy()
         IntialPage(self.user)
+
+    def stop(self):
+        self.destroy()
+        self.user.closeConection()
+        self.user.sockUser.close()
 
 class NewChat(tk.Canvas):
     def __init__(self,parent, firstFrame, user: ClientUser,chatName, tipoChat):
@@ -710,6 +718,8 @@ class PerfilScreen(tk.Tk):
         tk.Label(self.frame, text=self.resp[2], background="#4EABB0",foreground="#006666", font=("Arial", 14)).place(y=205, x=80)
         tk.Button(self.frame, command=self.openChat, text="Abrir o chat", bg="red", relief="raised", height=1, width=10).place(y=250, x=150)
 
+        self.protocol("WM_DELETE_WINDOW", self.stop)
+
         self.frame.mainloop()
     
     def openChat(self):
@@ -718,6 +728,11 @@ class PerfilScreen(tk.Tk):
 
         NewChat(self, self.frame, self.user, self.resp[0], CONNECTION_TYPE["CHANNEL"])
         pass
+
+    def stop(self):
+        self.destroy()
+        self.user.closeConection()
+        self.user.sockUser.close()
 
 class GroupPerfilScreen(tk.Tk):
     
@@ -751,6 +766,8 @@ class GroupPerfilScreen(tk.Tk):
             tk.Button(self.frame, text="Enviar convite", command=self.abreInviteScreen, bg="red", relief="raised", height=1, width=10).place(y=250, x=75)
         tk.Button(self.frame,  text="Abrir o chat", bg="red", command=self.abreGroup, relief="raised", height=1, width=10).place(y=250, x=200)
 
+        self.protocol("WM_DELETE_WINDOW", self.stop)
+
         self.frame.mainloop()
 
     def abreGroup(self):
@@ -766,6 +783,11 @@ class GroupPerfilScreen(tk.Tk):
             return
 
         NewChat(self, self.frame, self.user, self.groupName, CONNECTION_TYPE["GROUP"])
+
+    def stop(self):
+        self.destroy()
+        self.user.closeConection()
+        self.user.sockUser.close()
     
     def outGroup(self):
 

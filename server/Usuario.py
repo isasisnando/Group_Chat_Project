@@ -283,7 +283,9 @@ class Usuario:
                 case('7'):
                     # self.tipoConec = CONNECTION_TYPE["GROUP"]
                     # self.conected = message[1]
-                    self.serv.users[message[2]].groupsAsked.remove(message[1])
+                    try:
+                        self.serv.users[message[2]].groupsAsked.remove(message[1])
+                    except: pass
                     self.serv.groups[message[1]].addUser(self.serv.users[message[2]])
                     self.serv.users[message[2]].addGroup(self.findGroup(message[1]))
                 
