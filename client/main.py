@@ -510,7 +510,7 @@ class NewChat(tk.Canvas):
     def upload(self):
         filename = tkinter.filedialog.askopenfilename()
         if filename:
-            self.user.sendUploadGroup(self.destName, self.user.getName(), filename)
+            self.user.sendUpload(self.destName, self.user.getName(), filename, self.tipoChat)
 
     def stop(self):
         self.running = False

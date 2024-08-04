@@ -39,12 +39,10 @@ class ClientUser:
         mensagem = f"2|GROUP|{dest}|{user}|{msg}"
         self.sockUser.send(mensagem.encode("utf-32"))
 
-    def sendUploadUser(self, dest, user, filename):
-        return #:)
     
-    def sendUploadGroup(self, dest, user,filename):
+    def sendUpload(self, dest, user,filename, type = CONNECTION_TYPE["GROUP"]):
         file_size = os.path.getsize(filename)
-        mensagem = f"2U|GROUP|{dest}|{user}|{filename}|{file_size}"
+        mensagem = f"2U|{type}|{dest}|{user}|{filename}|{file_size}"
         self.sockUser.send(mensagem.encode("utf-32"))
         
         with open(filename, "rb") as file:
@@ -105,4 +103,3 @@ class ClientUser:
         return image
 
 
-        
