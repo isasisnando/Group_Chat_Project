@@ -31,12 +31,12 @@ class ClientUser:
         self.sockUser.send(mensagem.encode("utf-32"))
          # A gente tem q fazer close aqui né?
     
-    def sendMsgUser(self, dest, user, msg):
-        mensagem = f"2|CHANNEL|{dest}|{user}|{msg}"
+    def sendMsgUser(self, dest, user, msg, prev=False):
+        mensagem = f"2|CHANNEL|{dest}|{user}|{msg}{"|" if prev else ""}"
         self.sockUser.send(mensagem.encode("utf-32"))
     
-    def sendMsgGroup(self, dest, user,msg):
-        mensagem = f"2|GROUP|{dest}|{user}|{msg}"
+    def sendMsgGroup(self, dest, user,msg, prev= False):
+        mensagem = f"2|GROUP|{dest}|{user}|{msg}{"|" if prev else ""}"
         self.sockUser.send(mensagem.encode("utf-32"))
 
     

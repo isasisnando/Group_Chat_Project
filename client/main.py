@@ -389,12 +389,13 @@ class NewChat(tk.Canvas):
         self.user = user
         self.destName = chatName
         self.tipoChat = tipoChat
+        self.prev = False
         print(user.sockUser)
 
         self.running = True
         self.interface_done = False 
 
-        self.window = f"Chat room:"
+        self.window = f"Chat room"
         
         self.first_frame = firstFrame
         self.first_frame.pack_forget()
@@ -403,15 +404,14 @@ class NewChat(tk.Canvas):
         # self.parent.bind('<Return>')
         self.parent.protocol("WM_DELETE_WINDOW", self.stop)
 
-
         screen_width, screen_height = self.winfo_screenwidth(), self.winfo_screenheight()
 
         x_co = int((screen_width / 2) - (680 / 2))
         y_co = int((screen_height / 2) - (750 / 2)) - 80
-        self.parent.geometry(f"680x750+{x_co}+{y_co}")
+        self.parent.geometry(f"680x750")
 
         container = tk.Frame(self)
-        container.place(x=40, y=120, width=450, height=550)
+        container.place(x=20, y=40, width=450, height=540)
         self.canvas = tk.Canvas(container, bg=PRIMARY_COLOR)
         self.scrollable_frame = tk.Frame(self.canvas, bg="cyan")
 
@@ -435,13 +435,13 @@ class NewChat(tk.Canvas):
         self.canvas.pack(fill="both", expand=True)
 
         self.send_button = tk.Button(self, text="Send", font="lucida 11 bold", bg="red", padx=10, relief="solid", bd=2, command=self.write)
-        self.send_button.place(x=500, y=680)
+        self.send_button.place(x=500, y=600)
 
         self.file_transfer_button = tk.Button(self, text= "Upload",font="lucida 11 bold", bg="red", padx=10, relief="solid", bd=2, command=self.upload)
-        self.file_transfer_button.place(x=350, y=680)
+        self.file_transfer_button.place(x=350, y=600)
 
         self.input_area = tk.Text(self, font="lucida 10 bold", width=38, height=2, highlightcolor="cyan", highlightthickness=1)
-        self.input_area.place(x=40, y=681)
+        self.input_area.place(x=40, y=600)
         self.input_area.focus_set()
 
         m_frame = tk.Frame(self.scrollable_frame, bg=PRIMARY_COLOR)
@@ -515,10 +515,10 @@ class NewChat(tk.Canvas):
 
     def write(self):
         if (self.tipoChat == CONNECTION_TYPE["GROUP"]):
-            self.user.sendMsgGroup(self.destName, self.user.getName(), self.input_area.get('1.0', 'end'))
+            self.user.sendMsgGroup(self.destName, self.user.getName(), self.input_area.get('1.0', 'end'), self.prev)
         elif (self.tipoChat == CONNECTION_TYPE["CHANNEL"]): 
-            self.user.sendMsgUser(self.destName, self.user.getName(), self.input_area.get('1.0', 'end'))
-    
+            self.user.sendMsgUser(self.destName, self.user.getName(), self.input_area.get('1.0', 'end'), self.prev)
+        self.prev = not self.prev
         self.input_area.delete('1.0', 'end')
 
     def upload(self):
