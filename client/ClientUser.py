@@ -90,7 +90,7 @@ class ClientUser:
     def getSingleFile(self, filename, filesize):
         mensagem = f"2S|{filename}|{filesize}"
         self.sockUser.send(mensagem.encode("utf-32"))   
-        print(mensagem) 
+        print(mensagem)     
         filename ="./rec/" +filename
         with open(filename, "wb") as file:
                 c = 0

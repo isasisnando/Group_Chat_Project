@@ -13,7 +13,7 @@ from pathlib import Path
 from ClientUser import ClientUser
 
 
-HOST = "127.0.0.1"
+HOST = "192.168.0.4"
 PORT = 3300
 PRIMARY_COLOR =  "#95ECEC"
 
@@ -375,7 +375,6 @@ class CreateGroup(tk.Tk):
         message = f"8|{self.group_name_input.get()}|{self.user.getName()}"
         self.user.sockUser.send(message.encode("utf-32"))
         self.destroy()
-        self.frame.destroy()
         IntialPage(self.user)
 
     def stop(self):
@@ -740,12 +739,12 @@ class GroupPerfilScreen(tk.Tk):
         super().__init__()
 
         self.geometry("360x300")
-        self.title("Informações pessoais")
+        self.title("Informações do grupo")
 
         self.frame = tk.Frame(self, background= "#95ECEC")
         self.frame.pack(fill="both", expand=True)
 
-        tk.Label(self.frame, text="Informações pessoais").place(relwidth=1, y=24)
+        tk.Label(self.frame, text="Informações do grupo").place(relwidth=1, y=24)
 
         self.user = user
         self.groupName = groupName

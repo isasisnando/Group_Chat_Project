@@ -6,7 +6,7 @@ import threading
 
 HOST = "127.0.0.1"
 PORT = 3300
-
+VERSION = "1.0.0"
 mensagemExistsUserEmail = "Já existe usuario com esse email"
 okMessage = "OK"
 
@@ -15,12 +15,13 @@ class Server:
         
         self.usersLogin = dict() # dict<email, senha>
         self.users = dict() # dict<name, user>
-        self.usersByEmail = dict() # dict<name, user>
+        self.usersByEmail = dict() # dict<email, user>
         self.groups = dict() # dict<nome, group>
 
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((HOST, PORT))
         self.socket.listen()
+        print(f"Group chat version {VERSION} is running on port {PORT}")
 
     def login(self, message, client, address):
 
@@ -51,9 +52,7 @@ class Server:
         t.start()
 
     def receive(self):
-
         while True:
-
             client, address = self.socket.accept()
             """
                 0 -> signup
@@ -61,7 +60,6 @@ class Server:
     
                 0|email|name|password|cep
                 1|email|password
-
             """
             message = client.recv(1024).decode("utf-32")
 
