@@ -13,7 +13,7 @@ from pathlib import Path
 from ClientUser import ClientUser
 
 
-HOST = "192.168.0.4"
+HOST = "127.0.0.1"
 PORT = 3300
 PRIMARY_COLOR =  "#95ECEC"
 

@@ -4,7 +4,14 @@ Esse documento é um relatório do Primeiro Projeto de Aplicação da Disciplina
 
 
 
+Pacotes necessários:
 
+```
+pip install Pillow
+pip install pygame
+```
+
+Iniciar o servidor
 
 ```
 cd server
