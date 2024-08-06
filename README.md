@@ -18,6 +18,8 @@ cd server
 py main.py
 ```
 
+
+Iniciar um cliente
 ```
 cd client
 py main.py
