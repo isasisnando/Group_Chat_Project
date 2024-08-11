@@ -21,8 +21,22 @@
 
 <p>A aplicação foi desenvolvida utilizando a linguagem de programação Python e alguns pacotes desenvolvidos com a mesma linguagem. Para a comunicação entre clientes e o servidor, utilizamos sockets fornecidos pela biblioteca socket e configurados com especificações para seguir o protocolo TCP de transporte. Devido à necessidade de alguns processos da aplicação funcionarem simultaneamente a outros, precisávamos utilizar threads por meio da biblioteca “threading”. Na parte do cliente, utilizamos também o Tkinter para criar a interface principal, além do auxílio do “Pillow” para a renderização das imagens em um chat, do “PyGame” para tocar áudios e da biblioteca “re” para algumas validações por meio de expressões regulares (como a de e-mail). Além disso, optamos por utilizar a programação orientada a objetos tanto no cliente quanto no servidor para encapsular melhor as funcionalidades comuns a um usuário, um grupo, etc.</p>
 
+<p>Pacotes necessários:</p>
 
-
+```
+    pip install Pillow
+    pip install pygame
+```
+Iniciar o servidor
+```
+    cd server
+    py main.py
+```
+Iniciar o cliente
+```
+    cd client
+    py main.py
+```
 ---
 
 <h2> Funcionalidades</h2>
