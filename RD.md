@@ -52,7 +52,7 @@ Iniciar o cliente
 
 <img alt="Tela Inicial" src="./img/initialScreen.png" />
 <img alt="Informações do Grupo" src="./img/groupInfos.png" />
-<img alt="Informações Pessoais" src="./img/personalInfos.png" />
+<img alt="Informações Pessoais" src="./img/personalInofs.png" />
 <img alt="Notificação" src="./img/notification.png" />
 <img alt="Convidar Usuários" src="./img/inviteUsers.png" />
 <img alt="Criar Grupos" src="./img/createGroup.png" />
